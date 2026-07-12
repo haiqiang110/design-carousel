@@ -28,7 +28,10 @@ const MAX_ROTATION = 28;        // Maximum card rotation in degrees
 const MAX_DEPTH = 140;          // Maximum Z-axis depth in pixels
 const MIN_SCALE = 0.92;         // Minimum card scale
 const SCALE_RANGE = 0.1;        // Scale variation range
-const GAP = 28;                 // Gap between cards in pixels
+
+function getCardGap() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-gap')) || 28;
+}
 
 // Reduced motion check
 const PREFERS_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -66,7 +69,7 @@ let isDetailExpanded = false;   // Whether detail section is expanded
 // Layout measurements
 let CARD_W = 300;               // Card width (measured dynamically)
 let CARD_H = 400;               // Card height (measured dynamically)
-let STEP = CARD_W + GAP;        // Distance between card centers
+let STEP = CARD_W + getCardGap(); // Distance between card centers
 let TRACK = 0;                  // Total carousel track length
 let SCROLL_X = 0;               // Current scroll position
 let VW_HALF = window.innerWidth * 0.5;
@@ -369,7 +372,7 @@ function measure() {
   const r = sample.getBoundingClientRect();
   CARD_W = r.width || CARD_W;
   CARD_H = r.height || CARD_H;
-  STEP = CARD_W + GAP;
+  STEP = CARD_W + getCardGap();
   TRACK = items.length * STEP;
 
   items.forEach((it, i) => {
