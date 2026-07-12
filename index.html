@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>建立购后流量分配的设计决策方式</title>
+    <link rel="stylesheet" href="./base.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="stage" aria-live="polite">
+      <canvas id="bg" aria-hidden="true"></canvas>
+
+      <header class="header">
+        <h1 class="header__title">
+          <span class="header__title-part1">建立购后流量分配的</span><span class="header__title-part2">设计决策方式</span>
+        </h1>
+      </header>
+
+      <section id="cards" class="cards" aria-label="流程节点轮播"></section>
+
+      <div id="modal" class="modal" aria-hidden="true">
+        <div class="modal__overlay" onclick="window.closeModal && window.closeModal()"></div>
+        <div class="modal__dialog" role="dialog" aria-modal="true">
+          <button class="modal__close" id="modalClose" aria-label="关闭" onclick="window.closeModal && window.closeModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div class="modal__content">
+            <canvas id="modalCanvas" class="modal__img"></canvas>
+            <img id="modalImg" class="modal__img" src="" alt="" />
+          </div>
+        </div>
+      </div>
+
+      <div id="loader" class="loader" aria-label="Loading" aria-live="assertive">
+        <div class="loader__content">
+          <div class="loader__ring" aria-hidden="true"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/dist/omggif.min.js"></script>
+    <script src="./data.js"></script>
+    <script src="./script.js" defer></script>
+  </body>
+</html>

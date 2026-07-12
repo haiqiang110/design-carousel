@@ -1,0 +1,20 @@
+/*
+  Base styles for the 3D Gradient Carousel
+  Modified from original project by Clément Grellier
+  MIT License - Copyright (c) 2009 - 2025 Clément Grellier
+*/
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+:root {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}

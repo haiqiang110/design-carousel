@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 450">
+  <rect width="360" height="450" fill="#b88eb3"/>
+  <rect width="360" height="450" fill="url(#g1)"/>
+  <text x="180" y="225" font-family="sans-serif" font-size="48" font-weight="300" fill="white" text-anchor="middle">04</text>
+  <text x="180" y="270" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,0.9)" text-anchor="middle">沉淀设计规范</text>
+  <text x="180" y="295" font-family="sans-serif" font-size="12" fill="rgba(255,255,255,0.7)" text-anchor="middle">Design Specification</text>
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#b88eb3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9a6f95;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
