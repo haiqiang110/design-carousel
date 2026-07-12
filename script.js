@@ -23,11 +23,22 @@ const FRICTION = 0.9;           // Velocity decay (0-1, lower = more friction)
 const WHEEL_SENS = 0.6;         // Mouse wheel sensitivity
 const DRAG_SENS = 1.0;          // Drag sensitivity
 
-// Visual constants
-const MAX_ROTATION = 28;        // Maximum card rotation in degrees
-const MAX_DEPTH = 140;          // Maximum Z-axis depth in pixels
-const MIN_SCALE = 0.92;         // Minimum card scale
-const SCALE_RANGE = 0.1;        // Scale variation range
+// Visual constants - read from CSS variables for responsive 3D effect
+let MAX_ROTATION = 28;
+let MAX_DEPTH = 140;
+let MIN_SCALE = 0.92;
+let SCALE_RANGE = 0.1;
+
+function updateVisualConstants() {
+  const styles = getComputedStyle(document.documentElement);
+  MAX_ROTATION = parseFloat(styles.getPropertyValue('--max-rotation')) || 28;
+  MAX_DEPTH = parseFloat(styles.getPropertyValue('--max-depth')) || 140;
+  MIN_SCALE = parseFloat(styles.getPropertyValue('--min-scale')) || 0.92;
+  SCALE_RANGE = parseFloat(styles.getPropertyValue('--scale-range')) || 0.1;
+  if (items.length > 0) {
+    render();
+  }
+}
 
 function getCardGap() {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--card-gap')) || 28;
@@ -624,6 +635,7 @@ function onResize() {
   const prevStep = STEP || 1;
   const maxScrollPrev = Math.max(0, items.length * prevStep - prevStep * 0.5);
   const ratio = maxScrollPrev > 0 ? SCROLL_X / maxScrollPrev : 0;
+  updateVisualConstants();
   measure();
   VW_HALF = window.innerWidth * 0.5;
   const maxScroll = Math.max(0, TRACK - STEP * 0.5);
@@ -875,6 +887,7 @@ async function warmupCompositing() {
 async function init() {
   createProgressDots();
   createCards();
+  updateVisualConstants();
   measure();
   updateCarouselTransforms();
   stage.classList.add('carousel-mode');
