@@ -378,18 +378,28 @@ body {
 /* Responsive - Feishu doc embed (800-1200px wide) - exact pixel match at 900x460 */
 @media screen and (max-width: 1200px) and (min-width: 800px) {
   :root {
-    --header-padding-y: 11vh;
+    --header-padding-y: 8.7vh;
     --header-padding-x: 2vw;
-    --header-title-size: 6vh;
-    --card-width: 40vh;
-    --card-height: 50vh;
-    --card-gap: 4vh;
-    --card-top: 51.7vh;
-    --max-rotation: 28;
-    --max-depth: 160;
-    --min-scale: 0.86;
-    --scale-range: 0.14;
-    --perspective: 1500px;
+    --header-title-size: 6.52vh;
+    --card-width: 48.7vh;
+    --card-height: 60.9vh;
+    --card-gap: 0.87vh;
+    --card-top: 56.5vh;
+    --max-rotation: 30;
+    --max-depth: 180;
+    --min-scale: 0.8;
+    --scale-range: 0.2;
+    --perspective: 1400px;
+  }
+  .modal__dialog {
+    width: 480px;
+    max-height: 360px;
+  }
+  .modal__close {
+    width: 32px;
+    height: 32px;
+    top: 10px;
+    right: 10px;
   }
 }
 
@@ -552,5 +562,13 @@ body {
     height: 28px;
     top: 8px;
     right: 8px;
+  }
+}
+
+/* Feishu embed modal size override (800-1200px) - must be after other modal media queries */
+@media screen and (max-width: 1200px) and (min-width: 800px) {
+  .modal__dialog {
+    width: 480px !important;
+    max-height: 360px !important;
   }
 }
