@@ -378,18 +378,18 @@ body {
 /* Responsive - Feishu doc embed optimized (800-1100px) - 16:9 layout */
 @media screen and (max-width: 1100px) and (min-width: 800px) {
   :root {
-    --header-padding-y: 8vh;
+    --header-padding-y: 6vh;
     --header-padding-x: 2vw;
-    --header-title-size: clamp(24px, 4vh, 36px);
-    --card-width: 26vh;
-    --card-height: 32.5vh;
-    --card-gap: 3vh;
-    --card-top: calc(50vh - var(--card-height) * 0.5);
-    --max-rotation: 32;
-    --max-depth: 160;
-    --min-scale: 0.85;
-    --scale-range: 0.15;
-    --perspective: 1500px;
+    --header-title-size: clamp(28px, 5.2vh, 42px);
+    --card-width: 34vh;
+    --card-height: 42.5vh;
+    --card-gap: 4vh;
+    --card-top: calc(50vh - var(--card-height) / 2);
+    --max-rotation: 28;
+    --max-depth: 180;
+    --min-scale: 0.82;
+    --scale-range: 0.18;
+    --perspective: 1400px;
   }
 }
 
