@@ -36,7 +36,7 @@ function updateVisualConstants() {
   MIN_SCALE = parseFloat(styles.getPropertyValue('--min-scale')) || 0.92;
   SCALE_RANGE = parseFloat(styles.getPropertyValue('--scale-range')) || 0.1;
   if (items.length > 0) {
-    render();
+    updateCarouselTransforms();
   }
 }
 
