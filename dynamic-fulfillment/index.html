@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态履约触达</title>
+    <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+    <div class="white-wipe" id="whiteWipe"></div>
+    
+    <div class="fixed-background" id="fixedBackground">
+        <video src="base-wu.webm?v=4" muted loop playsinline autoplay></video>
+    </div>
+
+    <div class="fixed-texts" id="fixedTexts">
+        <div class="fixed-text">
+            <div class="fixed-text__line fixed-text__line--top">
+                <span class="line-text">被动的信息堆砌</span>
+                <span class="strike-line"></span>
+            </div>
+            <div class="fixed-text__line fixed-text__line--bottom">动态按需的主动触达</div>
+        </div>
+    </div>
+
+    <div class="fixed-text-groups" id="fixedTextGroups">
+        <div class="text-group" data-group-index="0">
+            <div class="text-row text-row-1">触什么？何时触？</div>
+        </div>
+        <div class="text-group" data-group-index="1">
+            <div class="text-row text-row-1">触达后延伸价值</div>
+        </div>
+    </div>
+    
+    <div class="scroll-container" id="scrollContainer">
+        <section class="page page--tall" data-page="0">
+            <div class="page-sticky">
+                <div class="page-images page-images--two">
+                    <img src="one1.png" class="page-content-image page-image--1" alt="待触达页面1">
+                    <img src="one2.png" class="page-content-image page-image--2" alt="待触达页面2">
+                </div>
+            </div>
+        </section>
+        <section class="page page--cards" data-page="1">
+            <div class="card card--top card--1">
+                <span class="card__text">闭店提醒</span>
+                <div class="card__images">
+                    <img src="白卡1-1.png" class="card__img card__img--back" alt="闭店提醒背景">
+                    <img src="白卡1-2.png" class="card__img card__img--front" alt="闭店提醒前景">
+                </div>
+            </div>
+            <div class="card card--bottom">
+                <span class="card__text">临期提醒</span>
+                <div class="card__images">
+                    <img src="白卡2-1.png" class="card__img card__img--back" alt="临期提醒背景">
+                    <img src="白卡2-2.png" class="card__img card__img--front" alt="临期提醒前景">
+                </div>
+            </div>
+        </section>
+        <section class="page page--cards" data-page="2">
+            <div class="card card--top">
+                <span class="card__text">旅游攻略</span>
+                <div class="card__images">
+                    <img src="白卡3-1.png" class="card__img card__img--back" alt="旅游攻略背景">
+                    <img src="白卡3-2.png" class="card__img card__img--front" alt="旅游攻略前景">
+                </div>
+            </div>
+            <div class="card card--bottom">
+                <span class="card__text">极端天气</span>
+                <div class="card__images">
+                    <img src="白卡4-1.png" class="card__img card__img--back" alt="极端天气背景">
+                    <img src="白卡4-2.png" class="card__img card__img--front" alt="极端天气前景">
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="script.js?v=3"></script>
+</body>
+</html>

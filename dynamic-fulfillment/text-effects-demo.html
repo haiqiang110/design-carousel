@@ -1,0 +1,3297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Motion Lab — 文字动效实验室</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #121214;
+            --bg-tertiary: #1a1a1d;
+            --bg-elevated: #222226;
+            --border-primary: #2a2a2f;
+            --border-secondary: #333338;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-quaternary: #52525b;
+            --accent: #FF6422;
+            --accent-hover: #ff7a3d;
+            --accent-pressed: #e55a1e;
+            --accent-glow: rgba(255, 100, 34, 0.3);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+            --shadow-xl: 0 24px 60px rgba(0,0,0,0.6);
+            --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ========== Top Bar ========== */
+        .topbar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--accent), #ff9a5a);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-version {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-primary);
+        }
+
+        .topbar-stats {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .stat-value {
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 11px;
+        }
+
+        /* ========== Main Layout ========== */
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ========== Left Sidebar - Effects List ========== */
+        .sidebar-left {
+            width: 220px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 14px 16px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header-count {
+            font-size: 10px;
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .effect-search {
+            margin: 0 12px 8px;
+            position: relative;
+        }
+
+        .effect-search input {
+            width: 100%;
+            padding: 7px 10px 7px 30px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 12px;
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .effect-search input:focus {
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+        }
+
+        .effect-search::before {
+            content: '⌕';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .effect-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px 8px;
+        }
+
+        .effect-list::-webkit-scrollbar { width: 6px; }
+        .effect-list::-webkit-scrollbar-track { background: transparent; }
+        .effect-list::-webkit-scrollbar-thumb { 
+            background: var(--border-secondary); 
+            border-radius: 3px; 
+        }
+        .effect-list::-webkit-scrollbar-thumb:hover { background: var(--text-quaternary); }
+
+        .effect-category {
+            margin-top: 8px;
+            margin-bottom: 4px;
+            padding: 0 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-quaternary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .effect-category:first-child { margin-top: 0; }
+
+        .effect-btn {
+            width: 100%;
+            padding: 7px 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+            position: relative;
+        }
+
+        .effect-btn:hover { 
+            background: var(--bg-tertiary); 
+            color: var(--text-primary); 
+        }
+
+        .effect-btn.active { 
+            background: rgba(255, 100, 34, 0.12); 
+            border-color: rgba(255, 100, 34, 0.3); 
+            color: var(--accent); 
+        }
+
+        .effect-btn.active::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .effect-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .effect-btn.active .effect-icon { opacity: 1; }
+
+        .effect-fav {
+            margin-left: auto;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.15s;
+            color: var(--text-quaternary);
+        }
+
+        .effect-btn:hover .effect-fav { opacity: 1; }
+        .effect-fav.active { opacity: 1; color: var(--warning); }
+
+        /* ========== Center - Preview Area ========== */
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--bg-primary);
+        }
+
+        .preview-toolbar {
+            height: 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-group-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-btn {
+            padding: 6px 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toolbar-btn:hover { 
+            background: var(--bg-tertiary); 
+            color: var(--text-primary); 
+        }
+
+        .toolbar-btn.active { 
+            background: var(--bg-tertiary); 
+            border-color: var(--border-secondary);
+            color: var(--text-primary); 
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 18px;
+            background: var(--border-primary);
+            margin: 0 4px;
+        }
+
+        .text-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .text-input-group label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .text-input-group input {
+            width: 100px;
+            padding: 5px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 11px;
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .text-input-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .preview-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle, var(--border-primary) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .preview-stage {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, #0d0d10 0%, #181820 50%, #0d0d10 100%);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                var(--shadow-xl),
+                inset 0 1px 0 rgba(255,255,255,0.03);
+            border: 1px solid var(--border-primary);
+        }
+
+        .preview-stage::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(255, 100, 34, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        #canvasLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .preview-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            font-size: clamp(40px, 8vw, 80px);
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 1;
+            will-change: transform, opacity, filter;
+            font-family: var(--font-sans);
+            letter-spacing: -0.02em;
+            z-index: 5;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        .scrubber-bar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px var(--accent-glow);
+            flex-shrink: 0;
+        }
+
+        .play-btn:hover { 
+            background: var(--accent-hover); 
+            transform: scale(1.05);
+        }
+        .play-btn:active { 
+            background: var(--accent-pressed); 
+            transform: scale(0.98);
+        }
+
+        .scrubber-track {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .scrubber-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+
+        .scrubber-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.15s;
+            pointer-events: none;
+        }
+
+        .scrubber-track:hover .scrubber-thumb { opacity: 1; }
+
+        .scrubber-time {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-tertiary);
+            min-width: 80px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .scrubber-time .current {
+            color: var(--text-primary);
+        }
+
+        /* ========== Right Sidebar - Params ========== */
+        .sidebar-right {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover { color: var(--text-secondary); }
+        .tab-btn.active { color: var(--text-primary); }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 1px 1px 0 0;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: none;
+        }
+
+        .tab-content.active { display: block; }
+
+        .tab-content::-webkit-scrollbar { width: 6px; }
+        .tab-content::-webkit-scrollbar-track { background: transparent; }
+        .tab-content::-webkit-scrollbar-thumb { 
+            background: var(--border-secondary); 
+            border-radius: 3px; 
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+
+        .param-item { 
+            margin-bottom: 12px; 
+        }
+        .param-item:last-child { margin-bottom: 0; }
+        
+        .param-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .param-name { 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+        }
+
+        .param-value { 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+        }
+
+        .param-value input[type="number"] {
+            width: 56px;
+            padding: 4px 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 11px;
+            text-align: right;
+            font-family: var(--font-mono);
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .param-value input[type="number"]:focus {
+            border-color: var(--accent);
+        }
+
+        .param-unit { 
+            font-size: 10px; 
+            color: var(--text-quaternary); 
+        }
+        
+        .param-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid var(--bg-secondary);
+            transition: transform 0.1s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .param-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .select-box {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .select-box:focus { border-color: var(--accent); }
+
+        .color-picker {
+            width: 100%;
+            height: 32px;
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            background: none;
+            padding: 2px;
+        }
+
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker::-webkit-color-swatch { 
+            border-radius: 4px; 
+            border: none;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .preset-btn {
+            padding: 8px 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover { 
+            background: var(--bg-elevated); 
+            color: var(--text-primary); 
+            border-color: var(--border-secondary); 
+        }
+        .preset-btn.active { 
+            background: rgba(255, 100, 34, 0.15); 
+            border-color: var(--accent); 
+            color: var(--accent); 
+        }
+
+        .timeline-visual {
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            position: relative;
+            margin-bottom: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-primary);
+        }
+
+        .timeline-seg {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.2s;
+        }
+
+        .timeline-seg.out { 
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.5)); 
+        }
+        .timeline-seg.pause { 
+            background: rgba(161, 161, 170, 0.2); 
+        }
+        .timeline-seg.in { 
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.5), rgba(34, 197, 94, 0.3)); 
+        }
+        .timeline-seg.overlap {
+            background: rgba(255, 100, 34, 0.4);
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-quaternary);
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+        }
+
+        .stat-card-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            margin-bottom: 2px;
+        }
+
+        .stat-card-value {
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        .effect-info-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .effect-info-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .effect-info-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        .kbd {
+            display: inline-block;
+            padding: 1px 5px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-secondary);
+            border-radius: 3px;
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+        }
+
+        .shortcuts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 3px;
+        }
+
+        /* ========== SVG Filters ========== */
+        .svg-filters { width: 0; height: 0; position: absolute; }
+
+        /* ========== Bottom Bar ========== */
+        .bottombar {
+            height: 28px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .bottombar-right {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .fps-indicator {
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .fps-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+    </style>
+</head>
+<body>
+    <svg class="svg-filters">
+        <defs>
+            <filter id="waveFilter" x="-20%" y="-20%" width="140%" height="140%">
+                <feTurbulence id="waveTurb" type="fractalNoise" baseFrequency="0.012 0.025" numOctaves="1" result="turbulence" seed="3"/>
+                <feDisplacementMap id="waveDisp" in="SourceGraphic" in2="turbulence" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="dissolveFilter" x="-10%" y="-10%" width="120%" height="120%">
+                <feTurbulence id="dissolveTurb" type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" result="noise" seed="1"/>
+                <feDisplacementMap id="dissolveDisp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="inkFilter" x="-15%" y="-15%" width="130%" height="130%">
+                <feTurbulence id="inkTurb" type="fractalNoise" baseFrequency="0.02 0.02" numOctaves="1" result="noise" seed="5"/>
+                <feDisplacementMap id="inkDisp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="glitchFilter" x="-10%" y="-10%" width="120%" height="120%">
+                <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="1" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="app">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-brand">
+                <div class="brand-logo">T</div>
+                <span class="brand-name">Text Motion Lab</span>
+                <span class="brand-version">v2.0</span>
+            </div>
+            <div class="topbar-divider"></div>
+            <div class="topbar-tabs">
+                <button class="topbar-tab" onclick="location.href='image-transitions-demo.html'">图片切换动画</button>
+                <button class="topbar-tab active">文字切换动画</button>
+            </div>
+            <div class="topbar-stats">
+                <div class="stat-item">
+                    <span class="stat-dot"></span>
+                    <span>GPU 加速</span>
+                </div>
+                <div class="stat-item">
+                    <button id="perfModeBtn" style="background:none;border:1px solid var(--border-primary);color:var(--text-secondary);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;transition:all 0.15s;">🎨 高画质</button>
+                </div>
+                <div class="stat-item">
+                    <span style="font-size: 12px;">⏱</span>
+                    <span class="stat-value" id="totalTimeDisplay">800ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Left Sidebar -->
+            <div class="sidebar-left">
+                <div class="sidebar-header">
+                    <span>效果库</span>
+                    <span class="sidebar-header-count" id="effectCount">22</span>
+                </div>
+                <div class="effect-search">
+                    <input type="text" id="effectSearch" placeholder="搜索效果...">
+                </div>
+                <div class="effect-list" id="effectList"></div>
+            </div>
+
+            <!-- Center Area -->
+            <div class="center-area">
+                <div class="preview-toolbar">
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="textSwapBtn">⇄ 交换</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="text-input-group">
+                        <label>文字 A</label>
+                        <input type="text" id="textAInput" value="DESIGN">
+                    </div>
+                    <div class="text-input-group">
+                        <label>文字 B</label>
+                        <input type="text" id="textBInput" value="SHOWCASE">
+                    </div>
+                    <div class="toolbar-group-right">
+                        <button class="toolbar-btn" id="loopBtn">↻ 循环</button>
+                        <div class="toolbar-divider"></div>
+                        <button class="toolbar-btn" id="bgToggleBtn">◧ 网格</button>
+                    </div>
+                </div>
+
+                <div class="preview-container" id="previewContainer">
+                    <div class="preview-grid-bg" id="gridBg"></div>
+                    <div class="preview-stage" id="previewStage">
+                        <canvas id="canvasLayer"></canvas>
+                        <div class="preview-text" id="textA">DESIGN</div>
+                        <div class="preview-text" id="textB">SHOWCASE</div>
+                    </div>
+                </div>
+
+                <div class="scrubber-bar">
+                    <button class="play-btn" id="playBtn">▶</button>
+                    <div class="scrubber-track" id="scrubberTrack">
+                        <div class="scrubber-fill" id="scrubberFill"></div>
+                        <div class="scrubber-thumb" id="scrubberThumb"></div>
+                    </div>
+                    <div class="scrubber-time">
+                        <span class="current" id="currentTime">0ms</span> / <span id="totalTimeScrubber">800ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar-right">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="effect">效果参数</button>
+                    <button class="tab-btn" data-tab="timeline">时间轴</button>
+                    <button class="tab-btn" data-tab="about">关于</button>
+                </div>
+
+                <!-- Effect Params Tab -->
+                <div class="tab-content active" id="tab-effect">
+                    <div class="effect-info-card">
+                        <div class="effect-info-title" id="infoEffectName">水波纹</div>
+                        <div class="effect-info-desc" id="infoEffectDesc">文字像水面波动一样扭曲变形</div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">参数调节</div>
+                        <div id="effectParams"></div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">预设方案</div>
+                        <div class="preset-grid" id="presetRow"></div>
+                    </div>
+                </div>
+
+                <!-- Timeline Tab -->
+                <div class="tab-content" id="tab-timeline">
+                    <div class="section">
+                        <div class="section-title">时间轴可视化</div>
+                        <div class="timeline-labels">
+                            <span>退场</span>
+                            <span>停顿</span>
+                            <span>入场</span>
+                        </div>
+                        <div class="timeline-visual" id="timelineVisual">
+                            <div class="timeline-seg out" id="visOut"></div>
+                            <div class="timeline-seg pause" id="visPause"></div>
+                            <div class="timeline-seg in" id="visIn"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">阶段时长</div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">退场时长</span>
+                                <span class="param-value">
+                                    <input type="number" id="outDuration" value="400" min="0" max="2000" step="50">
+                                    <span class="param-unit">ms</span>
+                                </span>
+                            </div>
+                            <input type="range" id="outDurationSlider" class="param-slider" min="0" max="2000" step="50" value="400">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">停顿时间</span>
+                                <span class="param-value">
+                                    <input type="number" id="pauseDuration" value="0" min="0" max="1000" step="50">
+                                    <span class="param-unit">ms</span>
+                                </span>
+                            </div>
+                            <input type="range" id="pauseDurationSlider" class="param-slider" min="0" max="1000" step="50" value="0">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">入场时长</span>
+                                <span class="param-value">
+                                    <input type="number" id="inDuration" value="400" min="0" max="2000" step="50">
+                                    <span class="param-unit">ms</span>
+                                </span>
+                            </div>
+                            <input type="range" id="inDurationSlider" class="param-slider" min="0" max="2000" step="50" value="400">
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">高级控制</div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">重叠比例</span>
+                                <span class="param-value">
+                                    <input type="number" id="overlap" value="0.3" min="0" max="0.8" step="0.05">
+                                </span>
+                            </div>
+                            <input type="range" id="overlapSlider" class="param-slider" min="0" max="0.8" step="0.05" value="0.3">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">缓动曲线</span>
+                            </div>
+                            <select id="easeType" class="select-box">
+                                <option value="linear">线性 (Linear)</option>
+                                <option value="ease">平滑 (Ease)</option>
+                                <option value="easeIn">缓入 (Ease In)</option>
+                                <option value="easeOut">缓出 (Ease Out)</option>
+                                <option value="easeInOut">缓入缓出 (Ease In Out)</option>
+                                <option value="easeOutCubic">立方缓出 (Cubic)</option>
+                                <option value="easeOutQuart">四次缓出 (Quart)</option>
+                                <option value="easeOutExpo">指数缓出 (Expo)</option>
+                                <option value="easeOutCirc">圆形缓出 (Circ)</option>
+                                <option value="bounce">弹跳 (Bounce)</option>
+                                <option value="elastic">弹性 (Elastic)</option>
+                                <option value="back">回退 (Back)</option>
+                            </select>
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">字符延迟</span>
+                                <span class="param-value">
+                                    <input type="number" id="charDelay" value="0" min="0" max="150" step="5">
+                                    <span class="param-unit">ms</span>
+                                </span>
+                            </div>
+                            <input type="range" id="charDelaySlider" class="param-slider" min="0" max="150" step="5" value="0">
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">统计</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-card-label">总时长</div>
+                                <div class="stat-card-value" id="statTotal">800ms</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">退场占比</div>
+                                <div class="stat-card-value" id="statOut">50%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">入场占比</div>
+                                <div class="stat-card-value" id="statIn">50%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">重叠时间</div>
+                                <div class="stat-card-value" id="statOverlap">120ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div class="tab-content" id="tab-about">
+                    <div class="section">
+                        <div class="section-title">关于</div>
+                        <p style="font-size: 12px; color: var(--text-tertiary); line-height: 1.6;">
+                            Text Motion Lab 是一款专业的文字动效调试工具，支持 22 种精选切换效果，
+                            配备三阶段时间轴系统与实时参数调节，帮助你找到完美的动效"手感"。
+                        </p>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">快捷键</div>
+                        <div class="shortcuts-list">
+                            <div class="shortcut-item">
+                                <span>播放/暂停</span>
+                                <div class="shortcut-keys"><span class="kbd">Space</span></div>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>重置</span>
+                                <div class="shortcut-keys"><span class="kbd">R</span></div>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>上一个效果</span>
+                                <div class="shortcut-keys"><span class="kbd">↑</span></div>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>下一个效果</span>
+                                <div class="shortcut-keys"><span class="kbd">↓</span></div>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>搜索效果</span>
+                                <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">K</span></div>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>切换标签</span>
+                                <div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">1-3</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottombar">
+            <span id="currentEffectDisplay">当前效果：水波纹</span>
+            <div class="bottombar-right">
+                <div class="fps-indicator">
+                    <span class="fps-dot" id="fpsDot"></span>
+                    <span id="fpsDisplay">60 FPS</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textA = document.getElementById('textA');
+        const textB = document.getElementById('textB');
+        const canvas = document.getElementById('canvasLayer');
+        const ctx = canvas.getContext('2d');
+        
+        const effectList = document.getElementById('effectList');
+        const effectParams = document.getElementById('effectParams');
+        const presetRow = document.getElementById('presetRow');
+        
+        const playBtn = document.getElementById('playBtn');
+        const scrubberTrack = document.getElementById('scrubberTrack');
+        const scrubberFill = document.getElementById('scrubberFill');
+        const scrubberThumb = document.getElementById('scrubberThumb');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeScrubber = document.getElementById('totalTimeScrubber');
+        const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+
+        const infoEffectName = document.getElementById('infoEffectName');
+        const infoEffectDesc = document.getElementById('infoEffectDesc');
+
+        const statTotal = document.getElementById('statTotal');
+        const statOut = document.getElementById('statOut');
+        const statIn = document.getElementById('statIn');
+        const statOverlap = document.getElementById('statOverlap');
+
+        const visOut = document.getElementById('visOut');
+        const visPause = document.getElementById('visPause');
+        const visIn = document.getElementById('visIn');
+
+        const fpsDisplay = document.getElementById('fpsDisplay');
+        const fpsDot = document.getElementById('fpsDot');
+        const currentEffectDisplay = document.getElementById('currentEffectDisplay');
+
+        const textAInput = document.getElementById('textAInput');
+        const textBInput = document.getElementById('textBInput');
+        const effectSearch = document.getElementById('effectSearch');
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+        }
+
+        function resetText(el) {
+            el.style.opacity = '';
+            el.style.transform = 'translate(-50%, -50%)';
+            el.style.filter = '';
+            el.style.clipPath = '';
+            el.style.textShadow = '';
+            el.style.transformOrigin = '';
+            el.style.left = '50%';
+            el.style.top = '50%';
+            el.style.color = '#fff';
+            el.style.webkitTextStroke = '';
+            el.style.background = '';
+            el.style.webkitBackgroundClip = '';
+            el.style.backgroundClip = '';
+            el.style.fontWeight = '800';
+            el.innerHTML = el.dataset.text || el.textContent;
+            el.style.transition = '';
+        }
+
+        const easeFunctions = {
+            linear: t => t,
+            ease: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+            easeIn: t => t * t * t,
+            easeOut: t => 1 - Math.pow(1 - t, 3),
+            easeInOut: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+            easeOutCubic: t => 1 - Math.pow(1 - t, 3),
+            easeOutQuart: t => 1 - Math.pow(1 - t, 4),
+            easeOutExpo: t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+            easeOutCirc: t => Math.sqrt(1 - Math.pow(t - 1, 2)),
+            bounce: t => {
+                const n1 = 7.5625, d1 = 2.75;
+                if (t < 1 / d1) return n1 * t * t;
+                if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+                if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+                return n1 * (t -= 2.625 / d1) * t + 0.984375;
+            },
+            elastic: t => {
+                const c4 = (2 * Math.PI) / 3;
+                return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+            },
+            back: t => {
+                const c1 = 1.70158, c3 = c1 + 1;
+                return c3 * t * t * t - c1 * t * t;
+            }
+        };
+
+        class Timeline {
+            constructor(config) {
+                this.outDuration = config.outDuration || 400;
+                this.pauseDuration = config.pauseDuration || 0;
+                this.inDuration = config.inDuration || 400;
+                this.overlap = config.overlap || 0.3;
+                this.easeType = config.easeType || 'ease';
+                this.charDelay = config.charDelay || 0;
+                this.onProgress = config.onProgress || null;
+                this.onComplete = config.onComplete || null;
+                this.rafId = null;
+                this.startTime = 0;
+                this.isRunning = false;
+            }
+
+            get totalDuration() {
+                return this.outDuration + this.pauseDuration + this.inDuration - this.outDuration * this.overlap;
+            }
+
+            get ease() {
+                return easeFunctions[this.easeType] || easeFunctions.ease;
+            }
+
+            run() {
+                this.isRunning = true;
+                this.startTime = performance.now();
+                
+                const total = this.totalDuration;
+                const outEnd = this.outDuration;
+                const pauseEnd = outEnd + this.pauseDuration;
+                const overlapTime = this.outDuration * this.overlap;
+                const inStart = outEnd - overlapTime;
+
+                const animate = (now) => {
+                    if (!this.isRunning) return;
+                    
+                    const elapsed = now - this.startTime;
+                    const progress = Math.min(elapsed / total, 1);
+                    
+                    let outProgress = 0;
+                    let inProgress = 0;
+                    let isPaused = false;
+
+                    if (elapsed < outEnd) {
+                        outProgress = this.ease(elapsed / this.outDuration);
+                    } else if (elapsed < pauseEnd) {
+                        outProgress = 1;
+                        isPaused = true;
+                    } else {
+                        outProgress = 1;
+                    }
+
+                    if (elapsed >= inStart && elapsed <= total) {
+                        const inElapsed = elapsed - inStart;
+                        const inTotal = total - inStart;
+                        inProgress = this.ease(inElapsed / inTotal);
+                    } else if (elapsed > total) {
+                        inProgress = 1;
+                    }
+
+                    if (this.onProgress) {
+                        this.onProgress({
+                            progress,
+                            outProgress,
+                            inProgress,
+                            isPaused,
+                            elapsed,
+                            total
+                        });
+                    }
+
+                    if (progress < 1) {
+                        this.rafId = requestAnimationFrame(animate);
+                    } else {
+                        this.isRunning = false;
+                        if (this.onComplete) {
+                            this.onComplete();
+                        }
+                    }
+                };
+                
+                this.rafId = requestAnimationFrame(animate);
+            }
+
+            stop() {
+                this.isRunning = false;
+                if (this.rafId) {
+                    cancelAnimationFrame(this.rafId);
+                    this.rafId = null;
+                }
+            }
+
+            seek(progress) {
+                const total = this.totalDuration;
+                const elapsed = progress * total;
+                const outEnd = this.outDuration;
+                const pauseEnd = outEnd + this.pauseDuration;
+                const overlapTime = this.outDuration * this.overlap;
+                const inStart = outEnd - overlapTime;
+
+                let outProgress = 0;
+                let inProgress = 0;
+                let isPaused = false;
+
+                if (elapsed < outEnd) {
+                    outProgress = this.ease(elapsed / this.outDuration);
+                } else if (elapsed < pauseEnd) {
+                    outProgress = 1;
+                    isPaused = true;
+                } else {
+                    outProgress = 1;
+                }
+
+                if (elapsed >= inStart && elapsed <= total) {
+                    const inElapsed = elapsed - inStart;
+                    const inTotal = total - inStart;
+                    inProgress = this.ease(inElapsed / inTotal);
+                } else if (elapsed > total) {
+                    inProgress = 1;
+                }
+
+                if (this.onProgress) {
+                    this.onProgress({
+                        progress,
+                        outProgress,
+                        inProgress,
+                        isPaused,
+                        elapsed,
+                        total
+                    });
+                }
+            }
+        }
+
+        const globals = {
+            textColor: '#ffffff',
+            outDuration: 400,
+            pauseDuration: 0,
+            inDuration: 400,
+            overlap: 0.3,
+            easeType: 'ease',
+            charDelay: 0
+        };
+
+        let performanceMode = localStorage.getItem('textMotionPerfMode') || 'quality';
+
+        function getPerfAdjustedParams(effectKey, params) {
+            const adjusted = { ...params };
+            if (performanceMode === 'performance') {
+                if (effectKey === 'wave' || effectKey === 'dissolve' || effectKey === 'ink' || effectKey === 'glitch') {
+                    if (adjusted.intensity !== undefined) adjusted.intensity *= 0.6;
+                    if (adjusted.frequency !== undefined) adjusted.frequency *= 0.5;
+                    if (adjusted.granularity !== undefined) adjusted.granularity *= 0.5;
+                    if (adjusted.shakeSpeed !== undefined) adjusted.shakeSpeed *= 0.6;
+                    if (adjusted.blur !== undefined) adjusted.blur *= 0.6;
+                }
+                if (effectKey === 'particles') {
+                    if (adjusted.particleCount !== undefined) adjusted.particleCount = Math.round(adjusted.particleCount * 0.5);
+                    if (adjusted.particleSize !== undefined) adjusted.particleSize = adjusted.particleSize * 0.8;
+                }
+                if (effectKey === 'blinds') {
+                    if (adjusted.strips !== undefined) adjusted.strips = Math.min(adjusted.strips, 5);
+                }
+                if (effectKey === 'char' || effectKey === 'scramble') {
+                    if (adjusted.delay !== undefined) adjusted.delay = adjusted.delay * 1.5;
+                }
+                if (effectKey === 'blur') {
+                    if (adjusted.maxBlur !== undefined) adjusted.maxBlur = adjusted.maxBlur * 0.6;
+                }
+                if (effectKey === 'glow' || effectKey === 'neon') {
+                    if (adjusted.glowSize !== undefined) adjusted.glowSize = adjusted.glowSize * 0.5;
+                }
+            }
+            return adjusted;
+        }
+
+        function updatePerfModeBtn() {
+            const btn = document.getElementById('perfModeBtn');
+            if (performanceMode === 'performance') {
+                btn.textContent = '⚡ 流畅模式';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                document.body.classList.add('perf-mode-performance');
+            } else {
+                btn.textContent = '🎨 高画质';
+                btn.style.borderColor = 'var(--border-primary)';
+                btn.style.color = 'var(--text-secondary)';
+                document.body.classList.remove('perf-mode-performance');
+            }
+        }
+
+        const presets = {
+            soft: { name: '柔和', params: { outDuration: 600, pauseDuration: 200, inDuration: 600, overlap: 0.5, easeType: 'easeOut' } },
+            standard: { name: '标准', params: { outDuration: 400, pauseDuration: 0, inDuration: 400, overlap: 0.3, easeType: 'ease' } },
+            strong: { name: '强烈', params: { outDuration: 300, pauseDuration: 0, inDuration: 300, overlap: 0.1, easeType: 'easeOutCubic' } },
+            cool: { name: '酷炫', params: { outDuration: 500, pauseDuration: 100, inDuration: 500, overlap: 0.2, easeType: 'elastic' } }
+        };
+
+        // ========== FPS Monitor ==========
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+        let fps = 60;
+
+        function updateFPS() {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastFpsTime >= 500) {
+                fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                fpsDisplay.textContent = fps + ' FPS';
+                fpsDot.style.background = fps >= 55 ? '#22c55e' : fps >= 30 ? '#f59e0b' : '#ef4444';
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+        }
+
+        // ========== Effects ==========
+        const effects = {
+            wave: {
+                name: '水波纹',
+                icon: '〰',
+                category: '扭曲变形',
+                desc: '文字像水面波动一样扭曲变形，柔和自然',
+                defaultParams: { intensity: 30, frequency: 0.01 },
+                presets: {
+                    soft: { intensity: 15, frequency: 0.008 },
+                    standard: { intensity: 30, frequency: 0.01 },
+                    strong: { intensity: 50, frequency: 0.015 },
+                    cool: { intensity: 70, frequency: 0.02 }
+                },
+                params: [
+                    { key: 'intensity', label: '波纹强度', min: 5, max: 100, step: 1, value: 30, unit: 'px' },
+                    { key: 'frequency', label: '波纹密度', min: 0.002, max: 0.05, step: 0.001, value: 0.01, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const waveDisp = document.getElementById('waveDisp');
+                    const waveTurb = document.getElementById('waveTurb');
+                    waveTurb.setAttribute('baseFrequency', `${p.frequency} ${p.frequency * 2}`);
+                    outEl.style.filter = 'url(#waveFilter)';
+                    inEl.style.filter = 'url(#waveFilter)';
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        waveDisp.setAttribute('scale', Math.max(outProgress, inProgress) * p.intensity);
+                        outEl.style.opacity = 1 - outProgress;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        waveDisp.setAttribute('scale', 0);
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            dissolve: {
+                name: '溶解消散',
+                icon: '◌',
+                category: '扭曲变形',
+                desc: '文字像粒子一样散开消失、聚合出现',
+                defaultParams: { intensity: 60, granularity: 0.05 },
+                presets: {
+                    soft: { intensity: 30, granularity: 0.03 },
+                    standard: { intensity: 60, granularity: 0.05 },
+                    strong: { intensity: 100, granularity: 0.08 },
+                    cool: { intensity: 150, granularity: 0.12 }
+                },
+                params: [
+                    { key: 'intensity', label: '扩散强度', min: 10, max: 150, step: 5, value: 60, unit: 'px' },
+                    { key: 'granularity', label: '颗粒粗细', min: 0.01, max: 0.15, step: 0.005, value: 0.05, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const dissolveDisp = document.getElementById('dissolveDisp');
+                    const dissolveTurb = document.getElementById('dissolveTurb');
+                    dissolveTurb.setAttribute('baseFrequency', `${p.granularity} ${p.granularity}`);
+                    outEl.style.filter = 'url(#dissolveFilter)';
+                    inEl.style.filter = 'url(#dissolveFilter)';
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        dissolveDisp.setAttribute('scale', Math.max(outProgress, inProgress) * p.intensity);
+                        outEl.style.opacity = 1 - outProgress;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        dissolveDisp.setAttribute('scale', 0);
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            ink: {
+                name: '墨水扩散',
+                icon: '●',
+                category: '扭曲变形',
+                desc: '文字像墨水滴入水中一样晕染开',
+                defaultParams: { intensity: 40, blur: 6 },
+                presets: {
+                    soft: { intensity: 20, blur: 3 },
+                    standard: { intensity: 40, blur: 6 },
+                    strong: { intensity: 70, blur: 10 },
+                    cool: { intensity: 100, blur: 15 }
+                },
+                params: [
+                    { key: 'intensity', label: '扩散强度', min: 10, max: 120, step: 5, value: 40, unit: 'px' },
+                    { key: 'blur', label: '模糊大小', min: 1, max: 20, step: 1, value: 6, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const inkDisp = document.getElementById('inkDisp');
+                    const inkBlur = document.getElementById('inkBlur');
+                    outEl.style.filter = 'url(#inkFilter)';
+                    inEl.style.filter = 'url(#inkFilter)';
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        inkDisp.setAttribute('scale', Math.max(outProgress, inProgress) * p.intensity);
+                        inkBlur.setAttribute('stdDeviation', Math.max(outProgress, inProgress) * p.blur);
+                        outEl.style.opacity = 1 - outProgress;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        inkDisp.setAttribute('scale', 0);
+                        inkBlur.setAttribute('stdDeviation', 0);
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            glitch: {
+                name: '故障风',
+                icon: '⟩⟨',
+                category: '风格化',
+                desc: 'RGB颜色错位抖动，赛博朋克感',
+                defaultParams: { intensity: 12, shakeSpeed: 4 },
+                presets: {
+                    soft: { intensity: 5, shakeSpeed: 2 },
+                    standard: { intensity: 12, shakeSpeed: 4 },
+                    strong: { intensity: 20, shakeSpeed: 6 },
+                    cool: { intensity: 30, shakeSpeed: 8 }
+                },
+                params: [
+                    { key: 'intensity', label: '抖动幅度', min: 2, max: 30, step: 1, value: 12, unit: 'px' },
+                    { key: 'shakeSpeed', label: '抖动频率', min: 1, max: 10, step: 1, value: 4, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    
+                    function setupGlitch(el, text) {
+                        el.innerHTML = `
+                            <span style="position:relative;display:inline-block;">
+                                <span style="position:absolute;top:0;left:0;color:#ff0040;mix-blend-mode:screen;">${text}</span>
+                                <span style="position:absolute;top:0;left:0;color:#00ffff;mix-blend-mode:screen;">${text}</span>
+                                <span style="position:relative;">${text}</span>
+                            </span>
+                        `;
+                    }
+                    
+                    setupGlitch(outEl, outText);
+                    setupGlitch(inEl, inText);
+                    inEl.style.opacity = 0;
+                    
+                    let frame = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        updateScrubber(progress, elapsed, total);
+                        frame++;
+                        
+                        if (frame % (8 - p.shakeSpeed) === 0) {
+                            if (outProgress < 1) {
+                                const max = outProgress * p.intensity;
+                                const r = (Math.random()-0.5)*max, b = (Math.random()-0.5)*max;
+                                outEl.querySelectorAll('span span')[0].style.transform = `translate(${r}px, ${b}px)`;
+                                outEl.querySelectorAll('span span')[1].style.transform = `translate(${-b}px, ${r}px)`;
+                                outEl.style.opacity = 1 - outProgress;
+                            } else {
+                                outEl.style.opacity = 0;
+                                const max = (1-inProgress) * p.intensity;
+                                const r = (Math.random()-0.5)*max, b = (Math.random()-0.5)*max;
+                                inEl.querySelectorAll('span span')[0].style.transform = `translate(${r}px, ${b}px)`;
+                                inEl.querySelectorAll('span span')[1].style.transform = `translate(${-b}px, ${r}px)`;
+                                inEl.style.opacity = inProgress;
+                            }
+                        }
+                    };
+                    timeline.onComplete = () => {
+                        outEl.innerHTML = outText;
+                        inEl.innerHTML = inText;
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            blur: {
+                name: '模糊进出',
+                icon: '◐',
+                category: '基础动效',
+                desc: '文字从模糊到清晰 / 清晰到模糊',
+                defaultParams: { maxBlur: 20 },
+                presets: {
+                    soft: { maxBlur: 10 },
+                    standard: { maxBlur: 20 },
+                    strong: { maxBlur: 35 },
+                    cool: { maxBlur: 50 }
+                },
+                params: [
+                    { key: 'maxBlur', label: '最大模糊度', min: 2, max: 50, step: 1, value: 20, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.filter = `blur(${outProgress * p.maxBlur}px)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.filter = `blur(${(1 - inProgress) * p.maxBlur}px)`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            fade: {
+                name: '淡入淡出',
+                icon: '◯',
+                category: '基础动效',
+                desc: '最基础的透明度渐变切换',
+                defaultParams: {},
+                presets: { soft: {}, standard: {}, strong: {}, cool: {} },
+                params: [],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.opacity = 1 - outProgress;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            slideUp: {
+                name: '上滑',
+                icon: '↑',
+                category: '位移动效',
+                desc: '文字从下方滑入，上方滑出',
+                defaultParams: { distance: 25 },
+                presets: {
+                    soft: { distance: 15 },
+                    standard: { distance: 25 },
+                    strong: { distance: 40 },
+                    cool: { distance: 60 }
+                },
+                params: [
+                    { key: 'distance', label: '滑动距离', min: 5, max: 80, step: 5, value: 25, unit: '%' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ progress, outProgress, inProgress, elapsed, total }) => {
+                        outEl.style.transform = `translate(-50%, calc(-50% - ${outProgress * p.distance}%))`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(-50%, calc(-50% + ${(1 - inProgress) * p.distance}%))`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            slideLeft: {
+                name: '左滑',
+                icon: '←',
+                category: '位移动效',
+                desc: '文字从右侧滑入，左侧滑出',
+                defaultParams: { distance: 25 },
+                presets: {
+                    soft: { distance: 15 },
+                    standard: { distance: 25 },
+                    strong: { distance: 40 },
+                    cool: { distance: 60 }
+                },
+                params: [
+                    { key: 'distance', label: '滑动距离', min: 5, max: 80, step: 5, value: 25, unit: '%' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    inEl.style.transform = `translate(calc(-50% + ${p.distance}%), -50%)`;
+                    
+                    timeline.onProgress = ({ progress, outProgress, inProgress, elapsed, total }) => {
+                        outEl.style.transform = `translate(calc(-50% - ${outProgress * p.distance}%), -50%)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(calc(-50% + ${p.distance - inProgress * p.distance}%), -50%)`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            zoom: {
+                name: '缩放进出',
+                icon: '⊕',
+                category: '位移动效',
+                desc: '旧文字缩小消失，新文字放大出现',
+                defaultParams: { scale: 0.3 },
+                presets: {
+                    soft: { scale: 0.6 },
+                    standard: { scale: 0.3 },
+                    strong: { scale: 0.1 },
+                    cool: { scale: 0.01 }
+                },
+                params: [
+                    { key: 'scale', label: '缩放下限', min: 0.01, max: 0.8, step: 0.05, value: 0.3, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translate(-50%, -50%) scale(${1 - outProgress * (1 - p.scale)})`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(-50%, -50%) scale(${p.scale + inProgress * (1 - p.scale)})`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            flip: {
+                name: '立体翻转',
+                icon: '⟳',
+                category: '3D动效',
+                desc: '文字像卡片一样3D翻转切换',
+                defaultParams: { angle: 90, perspective: 1000 },
+                presets: {
+                    soft: { angle: 60, perspective: 1500 },
+                    standard: { angle: 90, perspective: 1000 },
+                    strong: { angle: 120, perspective: 600 },
+                    cool: { angle: 180, perspective: 400 }
+                },
+                params: [
+                    { key: 'angle', label: '翻转角度', min: 30, max: 180, step: 5, value: 90, unit: 'deg' },
+                    { key: 'perspective', label: '透视强度', min: 200, max: 2000, step: 50, value: 1000, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    document.getElementById('previewStage').style.perspective = p.perspective + 'px';
+                    outEl.style.transformOrigin = 'center center';
+                    inEl.style.transformOrigin = 'center center';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translate(-50%, -50%) rotateX(${outProgress * p.angle}deg)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(-50%, -50%) rotateX(${-p.angle + inProgress * p.angle}deg)`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        document.getElementById('previewStage').style.perspective = '';
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            mirrorFlip: {
+                name: '镜像翻转',
+                icon: '⇄',
+                category: '3D动效',
+                desc: '文字像照镜子一样翻转过去',
+                defaultParams: { perspective: 1000 },
+                presets: {
+                    soft: { perspective: 1500 },
+                    standard: { perspective: 1000 },
+                    strong: { perspective: 600 },
+                    cool: { perspective: 400 }
+                },
+                params: [
+                    { key: 'perspective', label: '透视强度', min: 200, max: 2000, step: 50, value: 1000, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    document.getElementById('previewStage').style.perspective = p.perspective + 'px';
+                    outEl.style.transformOrigin = 'center center';
+                    inEl.style.transformOrigin = 'center center';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translate(-50%, -50%) rotateY(${outProgress * 90}deg)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(-50%, -50%) rotateY(${-90 + inProgress * 90}deg)`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        document.getElementById('previewStage').style.perspective = '';
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            perspective3d: {
+                name: '3D透视',
+                icon: '◇',
+                category: '3D动效',
+                desc: '文字从远处空间飞过来/飞出去',
+                defaultParams: { depth: 600, perspective: 600 },
+                presets: {
+                    soft: { depth: 300, perspective: 1000 },
+                    standard: { depth: 600, perspective: 600 },
+                    strong: { depth: 1000, perspective: 400 },
+                    cool: { depth: 1500, perspective: 300 }
+                },
+                params: [
+                    { key: 'depth', label: '飞行距离', min: 100, max: 1500, step: 50, value: 600, unit: 'px' },
+                    { key: 'perspective', label: '透视强度', min: 200, max: 1500, step: 50, value: 600, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    document.getElementById('previewStage').style.perspective = p.perspective + 'px';
+                    outEl.style.transformOrigin = 'center center';
+                    inEl.style.transformOrigin = 'center center';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translate(-50%, -50%) translateZ(-${outProgress * p.depth}px)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translate(-50%, -50%) translateZ(${(1 - inProgress) * p.depth}px)`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        document.getElementById('previewStage').style.perspective = '';
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            scan: {
+                name: '扫描线',
+                icon: '▎',
+                category: '遮罩动效',
+                desc: '一道光从左扫到右，文字随之出现',
+                defaultParams: { barWidth: 30 },
+                presets: {
+                    soft: { barWidth: 50 },
+                    standard: { barWidth: 30 },
+                    strong: { barWidth: 15 },
+                    cool: { barWidth: 8 }
+                },
+                params: [
+                    { key: 'barWidth', label: '光带宽度', min: 5, max: 80, step: 1, value: 30, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        outEl.style.clipPath = `inset(0 0 0 ${progress * 100}%)`;
+                        inEl.style.clipPath = `inset(0 ${100 - progress * 100}% 0 0)`;
+                        
+                        const glowIntensity = Math.sin(progress * Math.PI) * 20;
+                        inEl.style.textShadow = `0 0 ${glowIntensity}px #fff`;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            maskReveal: {
+                name: '遮罩动画',
+                icon: '▰',
+                category: '遮罩动效',
+                desc: '渐变遮罩扫过文字，逐渐显示',
+                defaultParams: { maskWidth: 50, direction: 'right' },
+                presets: {
+                    soft: { maskWidth: 80, direction: 'right' },
+                    standard: { maskWidth: 50, direction: 'right' },
+                    strong: { maskWidth: 30, direction: 'right' },
+                    cool: { maskWidth: 15, direction: 'right' }
+                },
+                params: [
+                    { key: 'maskWidth', label: '遮罩宽度', min: 10, max: 100, step: 5, value: 50, unit: '%' },
+                    { key: 'direction', label: '扫描方向', type: 'select', options: ['right', 'left', 'up', 'down'], value: 'right' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        let clipIn, clipOut;
+                        if (p.direction === 'right') {
+                            clipOut = `inset(0 0 0 ${progress * 100}%)`;
+                            clipIn = `inset(0 ${100 - progress * 100}% 0 0)`;
+                        } else if (p.direction === 'left') {
+                            clipOut = `inset(0 ${100 - progress * 100}% 0 0)`;
+                            clipIn = `inset(0 0 0 ${progress * 100}%)`;
+                        } else if (p.direction === 'up') {
+                            clipOut = `inset(${100 - progress * 100}% 0 0 0)`;
+                            clipIn = `inset(0 0 ${progress * 100}% 0)`;
+                        } else {
+                            clipOut = `inset(0 0 ${progress * 100}% 0)`;
+                            clipIn = `inset(${100 - progress * 100}% 0 0 0)`;
+                        }
+                        
+                        outEl.style.clipPath = clipOut;
+                        inEl.style.clipPath = clipIn;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            blinds: {
+                name: '百叶窗',
+                icon: '≡',
+                category: '遮罩动效',
+                desc: '文字被切成若干水平条带，依次滑入滑出',
+                defaultParams: { strips: 8, stagger: 0.3 },
+                presets: {
+                    soft: { strips: 5, stagger: 0.4 },
+                    standard: { strips: 8, stagger: 0.3 },
+                    strong: { strips: 12, stagger: 0.2 },
+                    cool: { strips: 15, stagger: 0.15 }
+                },
+                params: [
+                    { key: 'strips', label: '切分数量', min: 3, max: 15, step: 1, value: 8, unit: '条' },
+                    { key: 'stagger', label: '错峰比例', min: 0.1, max: 0.6, step: 0.05, value: 0.3, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    
+                    function createBlinds(el, text) {
+                        el.innerHTML = '';
+                        el.style.opacity = '1';
+                        for (let i = 0; i < p.strips; i++) {
+                            const strip = document.createElement('div');
+                            strip.style.cssText = `position:absolute;top:${(i/p.strips)*100}%;left:0;width:100%;height:${100/p.strips}%;overflow:hidden;`;
+                            const inner = document.createElement('span');
+                            inner.style.cssText = `position:absolute;top:${-i*100}%;left:0;white-space:nowrap;will-change:transform;`;
+                            inner.textContent = text;
+                            strip.appendChild(inner);
+                            el.appendChild(strip);
+                        }
+                    }
+                    
+                    createBlinds(outEl, outText);
+                    createBlinds(inEl, inText);
+                    
+                    const outStrips = outEl.querySelectorAll('div > span');
+                    const inStrips = inEl.querySelectorAll('div > span');
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outStrips.forEach((s, i) => {
+                            const delay = i / p.strips * p.stagger;
+                            const stripProgress = Math.max(0, Math.min(1, (outProgress - delay) / (1 - p.stagger)));
+                            s.style.transform = `translateY(${-stripProgress * 100}%)`;
+                            s.style.opacity = 1 - stripProgress;
+                        });
+                        
+                        inStrips.forEach((s, i) => {
+                            const delay = i / p.strips * p.stagger;
+                            const stripProgress = Math.max(0, Math.min(1, (inProgress - delay) / (1 - p.stagger)));
+                            s.style.transform = `translateY(${(1 - stripProgress) * 100}%)`;
+                            s.style.opacity = stripProgress;
+                        });
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        outEl.innerHTML = outText;
+                        inEl.innerHTML = inText;
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            char: {
+                name: '逐字出现',
+                icon: 'A▸',
+                category: '字符动效',
+                desc: '每个字依次出现，有节奏感',
+                defaultParams: { delay: 50, offset: 20 },
+                presets: {
+                    soft: { delay: 80, offset: 10 },
+                    standard: { delay: 50, offset: 20 },
+                    strong: { delay: 30, offset: 40 },
+                    cool: { delay: 20, offset: 60 }
+                },
+                params: [
+                    { key: 'delay', label: '每字间隔', min: 10, max: 150, step: 5, value: 50, unit: 'ms' },
+                    { key: 'offset', label: '位移距离', min: 5, max: 80, step: 5, value: 20, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    
+                    function splitChars(el, text) {
+                        el.innerHTML = '';
+                        el.style.opacity = '1';
+                        for (let i = 0; i < text.length; i++) {
+                            const span = document.createElement('span');
+                            span.style.cssText = 'display:inline-block;will-change:transform,opacity;transform:translateZ(0);';
+                            span.textContent = text[i];
+                            el.appendChild(span);
+                        }
+                    }
+                    
+                    splitChars(outEl, outText);
+                    splitChars(inEl, inText);
+                    
+                    const outChars = outEl.querySelectorAll('span');
+                    const inChars = inEl.querySelectorAll('span');
+                    
+                    outChars.forEach(c => { c.style.opacity = '1'; c.style.transform = 'translateY(0)'; });
+                    inChars.forEach(c => { c.style.opacity = '0'; c.style.transform = `translateY(${p.offset}px)`; });
+                    
+                    const overlapTime = g.outDuration * g.overlap;
+                    const inStart = g.outDuration - overlapTime;
+                    
+                    requestAnimationFrame(() => {
+                        outChars.forEach((c, i) => {
+                            const delay = i * p.delay;
+                            c.style.transition = `opacity ${g.outDuration * 0.6}ms ${g.easeType} ${delay}ms, transform ${g.outDuration * 0.6}ms ${g.easeType} ${delay}ms`;
+                            c.style.opacity = '0';
+                            c.style.transform = `translateY(${-p.offset}px)`;
+                        });
+                        
+                        inChars.forEach((c, i) => {
+                            const delay = inStart + i * p.delay;
+                            c.style.transition = `opacity ${g.inDuration * 0.6}ms ${g.easeType} ${delay}ms, transform ${g.inDuration * 0.6}ms ${g.easeType} ${delay}ms`;
+                            c.style.opacity = '1';
+                            c.style.transform = 'translateY(0)';
+                        });
+                    });
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        outEl.innerHTML = outText;
+                        inEl.innerHTML = inText;
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            scramble: {
+                name: '字符乱码',
+                icon: '?#!',
+                category: '字符动效',
+                desc: '文字变成乱码后逐渐恢复正确',
+                defaultParams: { scrambleChars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', scrambleSpeed: 8, revealDelay: 0.2 },
+                presets: {
+                    soft: { scrambleChars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', scrambleSpeed: 5, revealDelay: 0.3 },
+                    standard: { scrambleChars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', scrambleSpeed: 8, revealDelay: 0.2 },
+                    strong: { scrambleChars: '!@#$%^&*()_+-=[]{}|;:,.<>?', scrambleSpeed: 12, revealDelay: 0.1 },
+                    cool: { scrambleChars: 'あいうえおかきくけこさしすせそ', scrambleSpeed: 15, revealDelay: 0 }
+                },
+                params: [
+                    { key: 'scrambleChars', label: '乱码字符集', type: 'text', value: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' },
+                    { key: 'scrambleSpeed', label: '乱码速度', min: 1, max: 20, step: 1, value: 8, unit: 'fps' },
+                    { key: 'revealDelay', label: '显示延迟', min: 0, max: 0.5, step: 0.05, value: 0.2, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    
+                    inEl.innerHTML = '';
+                    inEl.style.opacity = '1';
+                    
+                    const chars = inText.split('');
+                    chars.forEach((char, i) => {
+                        const span = document.createElement('span');
+                        span.style.display = 'inline-block';
+                        span.style.opacity = '0.3';
+                        span.style.transform = 'scale(0.8)';
+                        span.style.transition = `opacity 200ms ease, transform 200ms ease`;
+                        span.textContent = p.scrambleChars[Math.floor(Math.random() * p.scrambleChars.length)];
+                        inEl.appendChild(span);
+                    });
+                    
+                    outEl.style.opacity = 0;
+                    inEl.style.opacity = 1;
+                    
+                    const spans = inEl.querySelectorAll('span');
+                    let lastScramble = 0;
+                    const revealed = new Set();
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        const now = performance.now();
+                        if (now - lastScramble > 1000 / p.scrambleSpeed) {
+                            lastScramble = now;
+                            spans.forEach((span, i) => {
+                                const revealTime = (i / chars.length) * (1 - p.revealDelay) + p.revealDelay;
+                                if (progress < revealTime) {
+                                    span.textContent = p.scrambleChars[Math.floor(Math.random() * p.scrambleChars.length)];
+                                } else {
+                                    if (!revealed.has(i)) {
+                                        revealed.add(i);
+                                        span.textContent = inText[i];
+                                        span.style.opacity = '1';
+                                        span.style.transform = 'scale(1)';
+                                    }
+                                }
+                            });
+                        }
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        inEl.innerHTML = inText;
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            typewriter: {
+                name: '打字机',
+                icon: '⌨',
+                category: '字符动效',
+                desc: '像键盘打字一样逐字出现',
+                defaultParams: { typeSpeed: 70, deleteSpeed: 40 },
+                presets: {
+                    soft: { typeSpeed: 100, deleteSpeed: 60 },
+                    standard: { typeSpeed: 70, deleteSpeed: 40 },
+                    strong: { typeSpeed: 40, deleteSpeed: 20 },
+                    cool: { typeSpeed: 20, deleteSpeed: 10 }
+                },
+                params: [
+                    { key: 'typeSpeed', label: '打字速度', min: 10, max: 200, step: 10, value: 70, unit: 'ms/字' },
+                    { key: 'deleteSpeed', label: '删除速度', min: 5, max: 100, step: 5, value: 40, unit: 'ms/字' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    
+                    inEl.style.opacity = 1;
+                    outEl.style.opacity = 1;
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        const outPhase = Math.min(progress * 2, 1);
+                        const inPhase = Math.max(0, (progress - 0.5) * 2);
+                        
+                        const outChars = Math.floor(outText.length * (1 - outPhase));
+                        outEl.textContent = outText.substring(0, outChars);
+                        
+                        const inChars = Math.floor(inText.length * inPhase);
+                        inEl.textContent = inText.substring(0, inChars);
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        outEl.textContent = outText;
+                        inEl.textContent = inText;
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            glow: {
+                name: '发光脉冲',
+                icon: '✦',
+                category: '光效动效',
+                desc: '文字带着光晕出现，然后光晕收敛',
+                defaultParams: { glowSize: 80, glowColor: 20 },
+                presets: {
+                    soft: { glowSize: 40, glowColor: 20 },
+                    standard: { glowSize: 80, glowColor: 20 },
+                    strong: { glowSize: 120, glowColor: 20 },
+                    cool: { glowSize: 180, glowColor: 200 }
+                },
+                params: [
+                    { key: 'glowSize', label: '光晕大小', min: 20, max: 200, step: 5, value: 80, unit: 'px' },
+                    { key: 'glowColor', label: '光晕色相', min: 0, max: 360, step: 5, value: 20, unit: '°' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const color = `hsl(${p.glowColor}, 100%, 60%)`;
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        const outGlow = outProgress * p.glowSize;
+                        outEl.style.textShadow = `0 0 ${outGlow/2}px #fff, 0 0 ${outGlow}px ${color}`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        const inGlow = inProgress * p.glowSize;
+                        inEl.style.textShadow = `0 0 ${inGlow/2}px #fff, 0 0 ${inGlow}px ${color}`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            neon: {
+                name: '霓虹闪烁',
+                icon: '⚡',
+                category: '光效动效',
+                desc: '像霓虹灯一样闪烁着亮起来',
+                defaultParams: { glowSize: 30, flicker: 0.5 },
+                presets: {
+                    soft: { glowSize: 15, flicker: 0.3 },
+                    standard: { glowSize: 30, flicker: 0.5 },
+                    strong: { glowSize: 50, flicker: 0.7 },
+                    cool: { glowSize: 70, flicker: 0.9 }
+                },
+                params: [
+                    { key: 'glowSize', label: '光晕大小', min: 5, max: 80, step: 5, value: 30, unit: 'px' },
+                    { key: 'flicker', label: '闪烁强度', min: 0.1, max: 1, step: 0.1, value: 0.5, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    function flickerFn(t) {
+                        const f = p.flicker;
+                        if (t < 0.1*f) return (t/(0.1*f))*0.3;
+                        if (t < 0.15*f) return 0.1;
+                        if (t < 0.2*f) return 0.5*f;
+                        if (t < 0.25*f) return 0.2;
+                        if (t < 0.35*f) return 0.8;
+                        return 0.8 + (t-0.35*f)/(1-0.35*f)*0.2;
+                    }
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        const f = flickerFn(inProgress);
+                        outEl.style.opacity = (1 - outProgress) * (1 - f * 0.3);
+                        outEl.style.textShadow = `0 0 ${p.glowSize}px #fff, 0 0 ${p.glowSize*2}px #FF6422`;
+                        
+                        inEl.style.opacity = inProgress * f;
+                        inEl.style.textShadow = `0 0 ${p.glowSize}px #fff, 0 0 ${p.glowSize*2}px #00ffff`;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            colorWipe: {
+                name: '颜色渐变',
+                icon: '◐',
+                category: '光效动效',
+                desc: '文字颜色从一种渐变到另一种',
+                defaultParams: { startColor: '#FF6422', endColor: '#00ffff', gradientSpeed: 1 },
+                presets: {
+                    soft: { startColor: '#FF6422', endColor: '#ffffff', gradientSpeed: 0.5 },
+                    standard: { startColor: '#FF6422', endColor: '#00ffff', gradientSpeed: 1 },
+                    strong: { startColor: '#ff0000', endColor: '#00ff00', gradientSpeed: 1.5 },
+                    cool: { startColor: '#ff00ff', endColor: '#00ffff', gradientSpeed: 2 }
+                },
+                params: [
+                    { key: 'startColor', label: '起始颜色', type: 'color', value: '#FF6422' },
+                    { key: 'endColor', label: '结束颜色', type: 'color', value: '#00ffff' },
+                    { key: 'gradientSpeed', label: '渐变速度', min: 0.2, max: 3, step: 0.1, value: 1, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    outEl.style.color = p.startColor;
+                    inEl.style.color = p.startColor;
+                    
+                    function hexToRgb(hex) {
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                        return result ? {
+                            r: parseInt(result[1], 16),
+                            g: parseInt(result[2], 16),
+                            b: parseInt(result[3], 16)
+                        } : { r: 255, g: 255, b: 255 };
+                    }
+                    
+                    const startRgb = hexToRgb(p.startColor);
+                    const endRgb = hexToRgb(p.endColor);
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        const r = Math.round(startRgb.r + (endRgb.r - startRgb.r) * inProgress);
+                        const gv = Math.round(startRgb.g + (endRgb.g - startRgb.g) * inProgress);
+                        const b = Math.round(startRgb.b + (endRgb.b - startRgb.b) * inProgress);
+                        inEl.style.color = `rgb(${r}, ${gv}, ${b})`;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            particles: {
+                name: '粒子爆炸',
+                icon: '✺',
+                category: 'Canvas动效',
+                desc: '文字碎成粒子四散，新文字由粒子汇聚（Canvas）',
+                defaultParams: { particleCount: 40, particleSize: 6 },
+                presets: {
+                    soft: { particleCount: 20, particleSize: 4 },
+                    standard: { particleCount: 40, particleSize: 6 },
+                    strong: { particleCount: 60, particleSize: 8 },
+                    cool: { particleCount: 80, particleSize: 10 }
+                },
+                params: [
+                    { key: 'particleCount', label: '粒子数量', min: 10, max: 100, step: 5, value: 40, unit: '个' },
+                    { key: 'particleSize', label: '粒子大小', min: 2, max: 15, step: 1, value: 6, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const rect = outEl.getBoundingClientRect();
+                    const previewRect = document.getElementById('previewStage').getBoundingClientRect();
+                    const centerX = rect.left - previewRect.left + rect.width / 2;
+                    const centerY = rect.top - previewRect.top + rect.height / 2;
+                    
+                    outEl.style.opacity = 0;
+                    inEl.style.opacity = 0;
+                    
+                    const particles = [];
+                    const outText = outEl.textContent;
+                    const inText = inEl.textContent;
+                    const fontSize = parseInt(getComputedStyle(outEl).fontSize);
+                    
+                    ctx.font = `800 ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+                    
+                    const totalWidth = ctx.measureText(outText).width;
+                    const startX = centerX - totalWidth / 2;
+                    
+                    outText.split('').forEach((char, i) => {
+                        const charWidth = ctx.measureText(char).width;
+                        const x = startX + i * charWidth + charWidth / 2;
+                        const y = centerY;
+                        
+                        const count = Math.round(p.particleCount / outText.length);
+                        for (let j = 0; j < count; j++) {
+                            particles.push({
+                                x: x + (Math.random() - 0.5) * 30,
+                                y: y + (Math.random() - 0.5) * 20,
+                                vx: (Math.random() - 0.5) * 8,
+                                vy: (Math.random() - 0.5) * 6 - 2,
+                                life: 1,
+                                color: `hsl(${20 + Math.random() * 30}, 100%, 65%)`,
+                                size: p.particleSize * (0.5 + Math.random() * 0.5),
+                                rotation: Math.random() * Math.PI * 2,
+                                rotationSpeed: (Math.random() - 0.5) * 0.15,
+                                trail: []
+                            });
+                        }
+                    });
+                    
+                    const convergeParticles = [];
+                    const totalWidth2 = ctx.measureText(inText).width;
+                    const startX2 = centerX - totalWidth2 / 2;
+                    
+                    inText.split('').forEach((char, i) => {
+                        const charWidth = ctx.measureText(char).width;
+                        const tx = startX2 + i * charWidth + charWidth / 2;
+                        const ty = centerY;
+                        
+                        const count = Math.round(p.particleCount / inText.length);
+                        for (let j = 0; j < count; j++) {
+                            convergeParticles.push({
+                                x: Math.random() * canvas.width,
+                                y: Math.random() * canvas.height,
+                                tx: tx + (Math.random() - 0.5) * 10,
+                                ty: ty + (Math.random() - 0.5) * 10,
+                                life: 0,
+                                color: '#fff',
+                                size: p.particleSize * (0.4 + Math.random() * 0.6),
+                                easeFactor: 0.03 + Math.random() * 0.04
+                            });
+                        }
+                    });
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        clearCanvas();
+                        updateFPS();
+                        
+                        if (outProgress < 1) {
+                            let trailBatches = {};
+                            
+                            particles.forEach(part => {
+                                part.trail.push({ x: part.x, y: part.y });
+                                if (part.trail.length > 4) part.trail.shift();
+                                
+                                part.x += part.vx;
+                                part.y += part.vy;
+                                part.vy += 0.08;
+                                part.life = 1 - outProgress;
+                                
+                                part.trail.forEach((t, i) => {
+                                    const alpha = ((i + 1) / part.trail.length) * part.life * 0.3;
+                                    const radius = part.size * ((i + 1) / part.trail.length) * 0.4;
+                                    const key = part.color;
+                                    if (!trailBatches[key]) trailBatches[key] = [];
+                                    trailBatches[key].push({ x: t.x, y: t.y, r: radius, a: alpha });
+                                });
+                                
+                                if (part.life > 0) {
+                                    const key = part.color;
+                                    if (!trailBatches[key]) trailBatches[key] = [];
+                                    trailBatches[key].push({ x: part.x, y: part.y, r: part.size * 0.5, a: part.life });
+                                }
+                            });
+                            
+                            for (const color in trailBatches) {
+                                const batch = trailBatches[color];
+                                const alphaBatches = {};
+                                batch.forEach(p => {
+                                    const aKey = p.a.toFixed(2);
+                                    if (!alphaBatches[aKey]) alphaBatches[aKey] = [];
+                                    alphaBatches[aKey].push(p);
+                                });
+                                
+                                ctx.fillStyle = color;
+                                for (const aKey in alphaBatches) {
+                                    ctx.globalAlpha = parseFloat(aKey);
+                                    ctx.beginPath();
+                                    alphaBatches[aKey].forEach(p => {
+                                        ctx.moveTo(p.x + p.r, p.y);
+                                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                                    });
+                                    ctx.fill();
+                                }
+                            }
+                        }
+                        
+                        if (inProgress > 0) {
+                            const inBatches = {};
+                            convergeParticles.forEach(part => {
+                                part.life = inProgress;
+                                part.x += (part.tx - part.x) * part.easeFactor * (1 + inProgress * 0.5);
+                                part.y += (part.ty - part.y) * part.easeFactor * (1 + inProgress * 0.5);
+                                
+                                if (part.life > 0) {
+                                    const aKey = part.life.toFixed(2);
+                                    if (!inBatches[aKey]) inBatches[aKey] = [];
+                                    inBatches[aKey].push({
+                                        x: part.x, y: part.y,
+                                        r: part.size * (0.5 + inProgress * 0.5) * 0.5
+                                    });
+                                }
+                            });
+                            
+                            ctx.fillStyle = '#fff';
+                            for (const aKey in inBatches) {
+                                ctx.globalAlpha = parseFloat(aKey);
+                                ctx.beginPath();
+                                inBatches[aKey].forEach(p => {
+                                    ctx.moveTo(p.x + p.r, p.y);
+                                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                                });
+                                ctx.fill();
+                            }
+                        }
+                        
+                        ctx.globalAlpha = 1;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        clearCanvas();
+                        resetText(outEl);
+                        resetText(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+        };
+
+        let currentEffect = 'wave';
+        let isAnimating = false;
+        let showingA = true;
+        let currentParams = {};
+        let currentTimeline = null;
+        let isLooping = false;
+        let isScrubbing = false;
+        let favorites = JSON.parse(localStorage.getItem('textMotionFavorites') || '[]');
+
+        function updateScrubber(progress, elapsed, total) {
+            const pct = progress * 100;
+            scrubberFill.style.width = pct + '%';
+            scrubberThumb.style.left = pct + '%';
+            currentTimeDisplay.textContent = Math.round(elapsed) + 'ms';
+            updateFPS();
+        }
+
+        function updateTimelineStats() {
+            const total = globals.outDuration + globals.pauseDuration + globals.inDuration - globals.outDuration * globals.overlap;
+            const outPercent = total > 0 ? (globals.outDuration / total) * 100 : 0;
+            const inPercent = total > 0 ? (globals.inDuration / total) * 100 : 0;
+            const pausePercent = total > 0 ? (globals.pauseDuration / total) * 100 : 0;
+            const overlapMs = Math.round(globals.outDuration * globals.overlap);
+            
+            statTotal.textContent = Math.round(total) + 'ms';
+            statOut.textContent = Math.round(outPercent) + '%';
+            statIn.textContent = Math.round(inPercent) + '%';
+            statOverlap.textContent = overlapMs + 'ms';
+            totalTimeDisplay.textContent = Math.round(total) + 'ms';
+            totalTimeScrubber.textContent = Math.round(total) + 'ms';
+            
+            const outW = globals.outDuration / total * 100;
+            const pauseW = globals.pauseDuration / total * 100;
+            const inW = globals.inDuration / total * 100;
+            const overlapW = (globals.outDuration * globals.overlap) / total * 100;
+            
+            visOut.style.width = outW + '%';
+            visOut.style.left = '0%';
+            
+            visPause.style.width = pauseW + '%';
+            visPause.style.left = outW + '%';
+            
+            visIn.style.width = inW + '%';
+            visIn.style.left = (outW + pauseW - overlapW) + '%';
+        }
+
+        function buildEffectList(filter = '') {
+            effectList.innerHTML = '';
+            
+            const categories = {};
+            Object.keys(effects).forEach(key => {
+                const effect = effects[key];
+                const cat = effect.category || '其他';
+                if (!categories[cat]) categories[cat] = [];
+                
+                if (filter && !effect.name.toLowerCase().includes(filter.toLowerCase()) 
+                    && !effect.desc.toLowerCase().includes(filter.toLowerCase())) {
+                    return;
+                }
+                
+                categories[cat].push({ key, ...effect });
+            });
+            
+            let count = 0;
+            Object.keys(categories).forEach(cat => {
+                if (categories[cat].length === 0) return;
+                
+                const catEl = document.createElement('div');
+                catEl.className = 'effect-category';
+                catEl.textContent = cat;
+                effectList.appendChild(catEl);
+                
+                categories[cat].forEach(effect => {
+                    const btn = document.createElement('button');
+                    btn.className = 'effect-btn' + (effect.key === currentEffect ? ' active' : '');
+                    btn.dataset.effect = effect.key;
+                    
+                    const isFav = favorites.includes(effect.key);
+                    btn.innerHTML = `
+                        <span class="effect-icon">${effect.icon || '●'}</span>
+                        <span>${effect.name}</span>
+                        <span class="effect-fav ${isFav ? 'active' : ''}" data-fav="${effect.key}">${isFav ? '★' : '☆'}</span>
+                    `;
+                    
+                    btn.addEventListener('click', (e) => {
+                        if (e.target.dataset.fav) {
+                            e.stopPropagation();
+                            toggleFavorite(e.target.dataset.fav);
+                            buildEffectList(effectSearch.value);
+                            return;
+                        }
+                        selectEffect(effect.key);
+                    });
+                    
+                    effectList.appendChild(btn);
+                    count++;
+                });
+            });
+            
+            document.getElementById('effectCount').textContent = count;
+        }
+
+        function toggleFavorite(key) {
+            const idx = favorites.indexOf(key);
+            if (idx > -1) {
+                favorites.splice(idx, 1);
+            } else {
+                favorites.push(key);
+            }
+            localStorage.setItem('textMotionFavorites', JSON.stringify(favorites));
+        }
+
+        function selectEffect(key) {
+            if (isAnimating) return;
+            document.querySelectorAll('.effect-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`[data-effect="${key}"]`);
+            if (btn) btn.classList.add('active');
+            
+            currentEffect = key;
+            infoEffectName.textContent = effects[key].name;
+            infoEffectDesc.textContent = effects[key].desc;
+            currentEffectDisplay.textContent = '当前效果：' + effects[key].name;
+            
+            loadParams(key);
+            renderParams();
+            
+            resetText(textA);
+            resetText(textB);
+            showingA = true;
+            textA.style.opacity = '1';
+            textB.style.opacity = '0';
+            playBtn.textContent = '▶';
+            
+            scrubberFill.style.width = '0%';
+            scrubberThumb.style.left = '0%';
+            currentTimeDisplay.textContent = '0ms';
+        }
+
+        function loadParams(key) {
+            currentParams = {};
+            effects[key].params.forEach(p => {
+                currentParams[p.key] = p.value;
+            });
+        }
+
+        function renderParams() {
+            effectParams.innerHTML = '';
+            const effect = effects[currentEffect];
+            
+            if (effect.params.length === 0) {
+                effectParams.innerHTML = '<div style="font-size: 12px; color: var(--text-tertiary); text-align: center; padding: 20px 0;">此效果无参数</div>';
+                renderPresets();
+                return;
+            }
+            
+            effect.params.forEach(param => {
+                const item = document.createElement('div');
+                item.className = 'param-item';
+                
+                if (param.type === 'color') {
+                    item.innerHTML = `
+                        <div class="param-label">
+                            <span class="param-name">${param.label}</span>
+                        </div>
+                        <input type="color" class="color-picker" value="${currentParams[param.key]}" data-key="${param.key}">
+                    `;
+                    item.querySelector('input').addEventListener('input', (e) => {
+                        currentParams[param.key] = e.target.value;
+                        triggerAutoPreview();
+                    });
+                } else if (param.type === 'text') {
+                    item.innerHTML = `
+                        <div class="param-label">
+                            <span class="param-name">${param.label}</span>
+                        </div>
+                        <input type="text" class="select-box" value="${currentParams[param.key]}" data-key="${param.key}" style="font-size: 11px;">
+                    `;
+                    item.querySelector('input').addEventListener('input', (e) => {
+                        currentParams[param.key] = e.target.value;
+                        triggerAutoPreview();
+                    });
+                } else if (param.type === 'select') {
+                    item.innerHTML = `
+                        <div class="param-label">
+                            <span class="param-name">${param.label}</span>
+                        </div>
+                        <select class="select-box" data-key="${param.key}">
+                            ${param.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                    const select = item.querySelector('select');
+                    select.value = currentParams[param.key];
+                    select.addEventListener('change', (e) => {
+                        currentParams[param.key] = e.target.value;
+                        triggerAutoPreview();
+                    });
+                } else {
+                    const label = document.createElement('div');
+                    label.className = 'param-label';
+                    label.innerHTML = `
+                        <span class="param-name">${param.label}</span>
+                        <span class="param-value">
+                            <input type="number" value="${currentParams[param.key]}" 
+                                min="${param.min}" max="${param.max}" step="${param.step}"
+                                data-key="${param.key}">
+                            <span class="param-unit">${param.unit}</span>
+                        </span>
+                    `;
+                    
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.className = 'param-slider';
+                    slider.min = param.min;
+                    slider.max = param.max;
+                    slider.step = param.step;
+                    slider.value = currentParams[param.key];
+                    slider.dataset.key = param.key;
+                    
+                    item.appendChild(label);
+                    item.appendChild(slider);
+                    
+                    slider.addEventListener('input', (e) => {
+                        currentParams[param.key] = parseFloat(e.target.value);
+                        label.querySelector('input[type="number"]').value = currentParams[param.key];
+                        triggerAutoPreview();
+                    });
+                    
+                    label.querySelector('input[type="number"]').addEventListener('input', (e) => {
+                        let val = parseFloat(e.target.value);
+                        if (isNaN(val)) val = param.min;
+                        val = Math.max(param.min, Math.min(param.max, val));
+                        currentParams[param.key] = val;
+                        slider.value = val;
+                        triggerAutoPreview();
+                    });
+                }
+                
+                effectParams.appendChild(item);
+            });
+
+            renderPresets();
+        }
+
+        function renderPresets() {
+            presetRow.innerHTML = '';
+            Object.keys(presets).forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'preset-btn';
+                btn.textContent = presets[key].name;
+                btn.addEventListener('click', () => applyPreset(key));
+                presetRow.appendChild(btn);
+            });
+        }
+
+        function applyPreset(presetKey) {
+            const preset = presets[presetKey];
+            
+            Object.keys(preset.params).forEach(key => {
+                if (currentParams[key] !== undefined) {
+                    currentParams[key] = preset.params[key];
+                }
+                if (globals[key] !== undefined) {
+                    globals[key] = preset.params[key];
+                }
+            });
+            
+            document.getElementById('outDuration').value = globals.outDuration;
+            document.getElementById('outDurationSlider').value = globals.outDuration;
+            document.getElementById('pauseDuration').value = globals.pauseDuration;
+            document.getElementById('pauseDurationSlider').value = globals.pauseDuration;
+            document.getElementById('inDuration').value = globals.inDuration;
+            document.getElementById('inDurationSlider').value = globals.inDuration;
+            document.getElementById('overlap').value = globals.overlap;
+            document.getElementById('overlapSlider').value = globals.overlap;
+            document.getElementById('easeType').value = globals.easeType;
+            document.getElementById('charDelay').value = globals.charDelay;
+            document.getElementById('charDelaySlider').value = globals.charDelay;
+            
+            updateTimelineStats();
+            renderParams();
+            triggerAutoPreview();
+        }
+
+        let autoPreviewTimer = null;
+        function triggerAutoPreview() {
+            const autoPreview = true;
+            if (!autoPreview) return;
+            
+            clearTimeout(autoPreviewTimer);
+            autoPreviewTimer = setTimeout(() => {
+                if (!isAnimating) {
+                    play();
+                }
+            }, 300);
+        }
+
+        function play() {
+            if (isAnimating && currentTimeline) {
+                currentTimeline.stop();
+                isAnimating = false;
+            }
+            
+            resetText(textA);
+            resetText(textB);
+            clearCanvas();
+            
+            if (showingA) {
+                textA.style.opacity = '1';
+                textB.style.opacity = '0';
+            } else {
+                textA.style.opacity = '0';
+                textB.style.opacity = '1';
+            }
+            
+            const outEl = showingA ? textA : textB;
+            const inEl = showingA ? textB : textA;
+            
+            currentTimeline = new Timeline({
+                outDuration: globals.outDuration,
+                pauseDuration: globals.pauseDuration,
+                inDuration: globals.inDuration,
+                overlap: globals.overlap,
+                easeType: globals.easeType,
+                charDelay: globals.charDelay
+            });
+            
+            isAnimating = true;
+            playBtn.textContent = '■';
+            
+            const adjustedParams = getPerfAdjustedParams(currentEffect, currentParams);
+            effects[currentEffect].animate(outEl, inEl, adjustedParams, globals, () => {
+                isAnimating = false;
+                showingA = !showingA;
+                playBtn.textContent = '▶';
+                
+                if (isLooping) {
+                    setTimeout(play, 500);
+                }
+            }, currentTimeline);
+        }
+
+        // ========== Tab Switching ==========
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ========== Play Button ==========
+        playBtn.addEventListener('click', play);
+
+        // ========== Text Inputs ==========
+        textAInput.addEventListener('input', () => {
+            textA.textContent = textAInput.value || 'DESIGN';
+            textA.dataset.text = textA.textContent;
+        });
+
+        textBInput.addEventListener('input', () => {
+            textB.textContent = textBInput.value || 'SHOWCASE';
+            textB.dataset.text = textB.textContent;
+        });
+
+        // ========== Swap Button ==========
+        document.getElementById('textSwapBtn').addEventListener('click', () => {
+            const temp = textAInput.value;
+            textAInput.value = textBInput.value;
+            textBInput.value = temp;
+            textA.textContent = textAInput.value;
+            textB.textContent = textBInput.value;
+            textA.dataset.text = textA.textContent;
+            textB.dataset.text = textB.textContent;
+        });
+
+        // ========== Loop Button ==========
+        document.getElementById('loopBtn').addEventListener('click', (e) => {
+            isLooping = !isLooping;
+            e.currentTarget.classList.toggle('active', isLooping);
+        });
+
+        // ========== Grid Toggle ==========
+        document.getElementById('bgToggleBtn').addEventListener('click', (e) => {
+            const grid = document.getElementById('gridBg');
+            grid.style.display = grid.style.display === 'none' ? 'block' : 'none';
+            e.currentTarget.classList.toggle('active');
+        });
+
+        // ========== Search ==========
+        effectSearch.addEventListener('input', (e) => {
+            buildEffectList(e.target.value);
+        });
+
+        // ========== Scrubber ==========
+        scrubberTrack.addEventListener('mousedown', (e) => {
+            if (isAnimating && currentTimeline) {
+                currentTimeline.stop();
+                isAnimating = false;
+                playBtn.textContent = '▶';
+            }
+            isScrubbing = true;
+            handleScrub(e);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isScrubbing) {
+                handleScrub(e);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isScrubbing) {
+                isScrubbing = false;
+            }
+        });
+
+        function handleScrub(e) {
+            const rect = scrubberTrack.getBoundingClientRect();
+            let progress = (e.clientX - rect.left) / rect.width;
+            progress = Math.max(0, Math.min(1, progress));
+            
+            resetText(textA);
+            resetText(textB);
+            clearCanvas();
+            textA.style.opacity = '1';
+            textB.style.opacity = '0';
+            
+            const tempTimeline = new Timeline({
+                outDuration: globals.outDuration,
+                pauseDuration: globals.pauseDuration,
+                inDuration: globals.inDuration,
+                overlap: globals.overlap,
+                easeType: globals.easeType,
+                charDelay: globals.charDelay
+            });
+            
+            effects[currentEffect].animate(textA, textB, currentParams, globals, () => {}, tempTimeline);
+            tempTimeline.stop();
+            tempTimeline.seek(progress);
+        }
+
+        // ========== Sliders ==========
+        function setupSlider(id, key, isFloat = false) {
+            const input = document.getElementById(id);
+            const slider = document.getElementById(id + 'Slider');
+            
+            slider.addEventListener('input', () => {
+                globals[key] = isFloat ? parseFloat(slider.value) : parseInt(slider.value);
+                input.value = globals[key];
+                updateTimelineStats();
+                triggerAutoPreview();
+            });
+            
+            input.addEventListener('input', () => {
+                globals[key] = isFloat ? (parseFloat(input.value) || 0) : (parseInt(input.value) || 0);
+                slider.value = globals[key];
+                updateTimelineStats();
+                triggerAutoPreview();
+            });
+        }
+
+        setupSlider('outDuration', 'outDuration');
+        setupSlider('pauseDuration', 'pauseDuration');
+        setupSlider('inDuration', 'inDuration');
+        setupSlider('overlap', 'overlap', true);
+        setupSlider('charDelay', 'charDelay');
+
+        document.getElementById('easeType').addEventListener('change', (e) => {
+            globals.easeType = e.target.value;
+            triggerAutoPreview();
+        });
+
+        // ========== Keyboard Shortcuts ==========
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
+            const effectKeys = Object.keys(effects);
+            const currentIdx = effectKeys.indexOf(currentEffect);
+            
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    play();
+                    break;
+                case 'KeyR':
+                    e.preventDefault();
+                    resetToStart();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (currentIdx > 0) selectEffect(effectKeys[currentIdx - 1]);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (currentIdx < effectKeys.length - 1) selectEffect(effectKeys[currentIdx + 1]);
+                    break;
+                case 'KeyK':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        effectSearch.focus();
+                        effectSearch.select();
+                    }
+                    break;
+                case 'Digit1':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        switchTab('effect');
+                    }
+                    break;
+                case 'Digit2':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        switchTab('timeline');
+                    }
+                    break;
+                case 'Digit3':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        switchTab('about');
+                    }
+                    break;
+            }
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function resetToStart() {
+            if (currentTimeline) {
+                currentTimeline.stop();
+            }
+            isAnimating = false;
+            showingA = true;
+            resetText(textA);
+            resetText(textB);
+            clearCanvas();
+            textA.style.opacity = '1';
+            textB.style.opacity = '0';
+            playBtn.textContent = '▶';
+            scrubberFill.style.width = '0%';
+            scrubberThumb.style.left = '0%';
+            currentTimeDisplay.textContent = '0ms';
+        }
+
+        // ========== Init ==========
+        function init() {
+            textA.dataset.text = textA.textContent;
+            textB.dataset.text = textB.textContent;
+            textA.style.opacity = '1';
+            textB.style.opacity = '0';
+            buildEffectList();
+            loadParams(currentEffect);
+            renderParams();
+            updateTimelineStats();
+            updatePerfModeBtn();
+            infoEffectName.textContent = effects[currentEffect].name;
+            infoEffectDesc.textContent = effects[currentEffect].desc;
+            currentEffectDisplay.textContent = '当前效果：' + effects[currentEffect].name;
+        }
+
+        document.getElementById('perfModeBtn').addEventListener('click', () => {
+            performanceMode = performanceMode === 'quality' ? 'performance' : 'quality';
+            localStorage.setItem('textMotionPerfMode', performanceMode);
+            updatePerfModeBtn();
+            triggerAutoPreview();
+        });
+
+        init();
+    </script>
+</body>
+</html>

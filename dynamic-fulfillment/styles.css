@@ -1,0 +1,372 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.white-wipe {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #ffffff;
+    z-index: 50;
+    pointer-events: none;
+    transform: translateY(100vh);
+    will-change: transform;
+    display: none;
+}
+
+.fixed-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.fixed-background video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.page-content-image {
+    max-width: 50%;
+    max-height: 80%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+    will-change: opacity, transform;
+}
+
+.page-content-image.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.page-images {
+    position: absolute;
+    top: 50%;
+    left: 68%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 2;
+    opacity: 1;
+    will-change: transform;
+}
+
+.page-images.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.page-images .page-content-image {
+    max-width: none;
+    max-height: 80vh;
+    height: 80vh;
+    width: auto;
+    position: relative;
+    opacity: 1;
+    transform: none;
+    transition: none;
+}
+
+.fixed-texts {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.fixed-text {
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translate(0, -50%);
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.fixed-text__line {
+    font-size: 30px;
+    font-weight: 480;
+    color: #000000;
+    line-height: 1.4;
+}
+
+.fixed-text__line--top {
+    margin-bottom: 4px;
+}
+
+.fixed-text__line--bottom {
+    color: #ffffff;
+}
+
+.fixed-text-groups {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.text-group {
+    position: absolute;
+    top: 50%;
+    left: 60%;
+    transform: translate(0, -50%);
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.text-row {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.text-row-1 {
+    color: #ffffff;
+    margin-bottom: 0;
+}
+
+.text-row-2 {
+    color: #FF5F0F;
+}
+
+.scroll-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    position: relative;
+    z-index: 10;
+}
+
+.page {
+    height: 100vh;
+    width: 100%;
+    scroll-snap-align: start;
+    position: relative;
+}
+
+.page--tall {
+    height: 140vh;
+}
+
+.page-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+/* ===== Strike Line 删除线 ===== */
+.fixed-text__line--top {
+    position: relative;
+    display: inline-block;
+}
+
+.line-text {
+    position: relative;
+    z-index: 1;
+}
+
+.strike-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 0;
+    height: 2.5px;
+    background-color: #000000;
+    transform: translateY(-50%);
+    z-index: 2;
+    will-change: width;
+}
+
+/* ===== Cards 卡片页面 ===== */
+.page--cards {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.card {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding-left: 50px;
+    box-sizing: border-box;
+    transform: translateY(100%);
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card--top {
+    bottom: 0;
+    z-index: 1;
+}
+
+.card--bottom {
+    bottom: 0;
+    z-index: 2;
+    transition-delay: 0.15s;
+}
+
+.page--cards.is-visible .card--top {
+    transform: translateY(-100%);
+}
+
+.page--cards.is-visible .card--bottom {
+    transform: translateY(0);
+}
+
+.card__text {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(0.92);
+    font-size: 30px;
+    font-weight: 480;
+    color: #000000;
+    line-height: 1.4;
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s,
+                transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s,
+                filter 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+    z-index: 3;
+    width: 50%;
+    text-align: center;
+}
+
+.card--top .card__text {
+    left: 0;
+}
+
+.card--bottom .card__text {
+    right: 0;
+}
+
+.page--cards.is-visible .card__text {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    filter: blur(0);
+}
+
+.card--bottom .card__text {
+    transition-delay: 0.45s;
+}
+
+.card__images {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.card--top .card__images {
+    right: 0;
+}
+
+.card--bottom .card__images {
+    left: 0;
+}
+
+.card__img {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card--top .card__img {
+    right: 0;
+}
+
+.card--bottom .card__img {
+    left: 0;
+}
+
+.card__img--back {
+    z-index: 1;
+    transition-delay: 0.35s;
+}
+
+.card__img--front {
+    z-index: 2;
+    transition-delay: 0.5s;
+}
+
+.card--bottom .card__text {
+    transition-delay: 0.35s;
+}
+
+.card--bottom .card__img--back {
+    transition-delay: 0.5s;
+}
+
+.card--bottom .card__img--front {
+    transition-delay: 0.65s;
+}
+
+.page--cards.is-visible .card__img {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* ===== Page Images 入场动画 ===== */
+.page-images .page-image--1,
+.page-images .page-image--2 {
+    opacity: 0;
+    transform: translateX(-20px);
+    will-change: opacity, transform;
+}
+
+.page-images.is-enter .page-image--1,
+.page-images.is-enter .page-image--2 {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.page-images .page-image--1 {
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-images .page-image--2 {
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}

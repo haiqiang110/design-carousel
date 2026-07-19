@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Motion Lab — 图片切换动效实验室</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #121214;
+            --bg-tertiary: #1a1a1d;
+            --bg-card: #16161a;
+            --border-primary: #26262b;
+            --border-secondary: #1f1f23;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-quaternary: #52525b;
+            --accent: #FF6422;
+            --accent-hover: #ff7a3d;
+            --accent-pressed: #e55a1e;
+            --accent-glow: rgba(255, 100, 34, 0.3);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Fira Code', 'Consolas', monospace;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Top Bar */
+        .topbar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), #ff8c42);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-version {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .topbar-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-primary);
+        }
+
+        .topbar-tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-tertiary);
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .topbar-tab {
+            padding: 5px 14px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            font-family: var(--font-sans);
+        }
+
+        .topbar-tab:hover {
+            color: var(--text-secondary);
+        }
+
+        .topbar-tab.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .topbar-stats {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 11px;
+        }
+
+        /* Main Layout */
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Sidebar */
+        .sidebar-left {
+            width: 220px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 14px 16px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header-count {
+            background: var(--bg-tertiary);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .effect-search {
+            padding: 0 12px 10px;
+        }
+
+        .effect-search input {
+            width: 100%;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 0 12px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .effect-search input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .effect-search input::placeholder {
+            color: var(--text-quaternary);
+        }
+
+        .effect-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px 12px;
+        }
+
+        .effect-list::-webkit-scrollbar { width: 6px; }
+        .effect-list::-webkit-scrollbar-track { background: transparent; }
+        .effect-list::-webkit-scrollbar-thumb { 
+            background: var(--border-primary); 
+            border-radius: 3px; 
+        }
+        .effect-list::-webkit-scrollbar-thumb:hover { background: var(--text-quaternary); }
+
+        .effect-category {
+            padding: 10px 8px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-quaternary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .effect-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: none;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+            position: relative;
+            font-family: var(--font-sans);
+        }
+
+        .effect-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .effect-btn.active {
+            background: rgba(255, 100, 34, 0.1);
+            color: var(--accent);
+        }
+
+        .effect-btn.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .effect-icon {
+            font-size: 14px;
+            width: 20px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .effect-btn.active .effect-icon { opacity: 1; }
+
+        /* Center Area */
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .preview-toolbar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-group-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-btn {
+            height: 30px;
+            padding: 0 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-secondary);
+        }
+
+        .toolbar-btn.active {
+            background: rgba(255, 100, 34, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-primary);
+        }
+
+        .image-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .image-input-group label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .image-input-group input[type="text"] {
+            width: 140px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 0 8px;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-family: var(--font-mono);
+            outline: none;
+        }
+
+        .image-input-group input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        .preview-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle, var(--border-primary) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .preview-grid-bg.hidden {
+            display: none;
+        }
+
+        .preview-stage {
+            position: relative;
+            width: min(80%, 700px);
+            aspect-ratio: 16/10;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .preview-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            will-change: transform, opacity, filter;
+            backface-visibility: hidden;
+        }
+
+        #canvasLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Scrubber Bar */
+        .scrubber-bar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px var(--accent-glow);
+            flex-shrink: 0;
+        }
+
+        .play-btn:hover { 
+            background: var(--accent-hover); 
+            transform: scale(1.05);
+        }
+        .play-btn:active { 
+            background: var(--accent-pressed); 
+            transform: scale(0.98);
+        }
+
+        .scrubber-track {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .scrubber-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+        }
+
+        .scrubber-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(-50%, -50%);
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.15s;
+            pointer-events: none;
+        }
+
+        .scrubber-track:hover .scrubber-thumb { opacity: 1; }
+
+        .scrubber-time {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* Right Sidebar */
+        .sidebar-right {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .tabs {
+            display: flex;
+            padding: 8px;
+            gap: 4px;
+            border-bottom: 1px solid var(--border-primary);
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            height: 30px;
+            background: none;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-tertiary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content::-webkit-scrollbar { width: 6px; }
+        .tab-content::-webkit-scrollbar-track { background: transparent; }
+        .tab-content::-webkit-scrollbar-thumb { 
+            background: var(--border-primary); 
+            border-radius: 3px; 
+        }
+
+        .section {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+
+        .effect-info-card {
+            margin: 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(255,100,34,0.08), rgba(255,140,66,0.04));
+            border: 1px solid rgba(255,100,34,0.2);
+            border-radius: var(--radius-md);
+        }
+
+        .effect-info-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .effect-info-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        .param-item {
+            margin-bottom: 12px;
+        }
+
+        .param-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .param-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .param-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .param-value {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--bg-tertiary);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .param-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .param-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .preset-btn {
+            height: 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: var(--font-sans);
+        }
+
+        .preset-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-secondary);
+        }
+
+        /* Timeline Tab */
+        .timeline-visual {
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            overflow: hidden;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .timeline-seg {
+            height: 100%;
+            position: relative;
+        }
+
+        .timeline-seg.out { background: rgba(239, 68, 68, 0.3); }
+        .timeline-seg.pause { background: rgba(107, 114, 128, 0.2); }
+        .timeline-seg.in { background: rgba(34, 197, 94, 0.3); }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+        }
+
+        .stat-card-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        .stat-card-value {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Bottom Bar */
+        .bottombar {
+            height: 28px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .fps-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .bottombar-right {
+            margin-left: auto;
+        }
+
+        /* SVG Filters */
+        .svg-filters {
+            position: absolute;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <svg class="svg-filters">
+        <defs>
+            <filter id="blurFilter">
+                <feGaussianBlur id="blurAmount" stdDeviation="0"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="app">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-brand">
+                <div class="brand-logo">I</div>
+                <span class="brand-name">Image Motion Lab</span>
+                <span class="brand-version">v1.0</span>
+            </div>
+            <div class="topbar-divider"></div>
+            <div class="topbar-tabs">
+                <button class="topbar-tab active" data-type="image">图片切换动画</button>
+                <button class="topbar-tab" data-type="text">文字切换动画</button>
+            </div>
+            <div class="topbar-stats">
+                <div class="stat-item">
+                    <span class="stat-dot"></span>
+                    <span>GPU 加速</span>
+                </div>
+                <div class="stat-item">
+                    <button id="perfModeBtn" style="background:none;border:1px solid var(--border-primary);color:var(--text-secondary);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;transition:all 0.15s;">🎨 高画质</button>
+                </div>
+                <div class="stat-item">
+                    <span>⏱</span>
+                    <span class="stat-value" id="totalTimeDisplay">800ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Left Sidebar -->
+            <div class="sidebar-left">
+                <div class="sidebar-header">
+                    <span>效果库</span>
+                    <span class="sidebar-header-count" id="effectCount">18</span>
+                </div>
+                <div class="effect-search">
+                    <input type="text" id="effectSearch" placeholder="搜索效果...">
+                </div>
+                <div class="effect-list" id="effectList"></div>
+            </div>
+
+            <!-- Center Area -->
+            <div class="center-area">
+                <div class="preview-toolbar">
+                    <div class="toolbar-group">
+                        <button class="toolbar-btn" id="imageSwapBtn">⇄ 交换</button>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="image-input-group">
+                        <label>图片 A</label>
+                        <input type="text" id="imageAUrl" value="">
+                    </div>
+                    <div class="image-input-group">
+                        <label>图片 B</label>
+                        <input type="text" id="imageBUrl" value="">
+                    </div>
+                    <div class="toolbar-group-right">
+                        <button class="toolbar-btn" id="loopBtn">↻ 循环</button>
+                        <div class="toolbar-divider"></div>
+                        <button class="toolbar-btn" id="bgToggleBtn">◧ 网格</button>
+                    </div>
+                </div>
+
+                <div class="preview-container" id="previewContainer">
+                    <div class="preview-grid-bg" id="gridBg"></div>
+                    <div class="preview-stage" id="previewStage">
+                        <canvas id="canvasLayer"></canvas>
+                        <img class="preview-image" id="imageA" crossorigin="anonymous" alt="Image A">
+                        <img class="preview-image" id="imageB" crossorigin="anonymous" alt="Image B">
+                    </div>
+                </div>
+
+                <div class="scrubber-bar">
+                    <button class="play-btn" id="playBtn">▶</button>
+                    <div class="scrubber-track" id="scrubberTrack">
+                        <div class="scrubber-fill" id="scrubberFill"></div>
+                        <div class="scrubber-thumb" id="scrubberThumb"></div>
+                    </div>
+                    <div class="scrubber-time">
+                        <span class="current" id="currentTime">0ms</span> / <span id="totalTimeScrubber">800ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar-right">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="effect">效果参数</button>
+                    <button class="tab-btn" data-tab="timeline">时间轴</button>
+                    <button class="tab-btn" data-tab="about">关于</button>
+                </div>
+
+                <!-- Effect Params Tab -->
+                <div class="tab-content active" id="tab-effect">
+                    <div class="effect-info-card">
+                        <div class="effect-info-title" id="infoEffectName">视差推动</div>
+                        <div class="effect-info-desc" id="infoEffectDesc">两张图片以不同速度移动，产生空间纵深感</div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">参数调节</div>
+                        <div id="effectParams"></div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">预设方案</div>
+                        <div class="preset-grid" id="presetRow"></div>
+                    </div>
+                </div>
+
+                <!-- Timeline Tab -->
+                <div class="tab-content" id="tab-timeline">
+                    <div class="section">
+                        <div class="section-title">时间轴可视化</div>
+                        <div class="timeline-labels">
+                            <span>退场</span>
+                            <span>停顿</span>
+                            <span>入场</span>
+                        </div>
+                        <div class="timeline-visual" id="timelineVisual">
+                            <div class="timeline-seg out" id="visOut"></div>
+                            <div class="timeline-seg pause" id="visPause"></div>
+                            <div class="timeline-seg in" id="visIn"></div>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-card-label">总时长</div>
+                                <div class="stat-card-value" id="statTotal">800ms</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">退场占比</div>
+                                <div class="stat-card-value" id="statOut">50%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">入场占比</div>
+                                <div class="stat-card-value" id="statIn">50%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">重叠时间</div>
+                                <div class="stat-card-value" id="statOverlap">120ms</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">时间参数</div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">退时常</span>
+                                <span class="param-value" id="outDurationVal">400ms</span>
+                            </div>
+                            <input type="range" class="param-slider" id="outDurationSlider" min="100" max="2000" step="50" value="400">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">停顿时长</span>
+                                <span class="param-value" id="pauseDurationVal">0ms</span>
+                            </div>
+                            <input type="range" class="param-slider" id="pauseDurationSlider" min="0" max="1000" step="50" value="0">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">入场时长</span>
+                                <span class="param-value" id="inDurationVal">400ms</span>
+                            </div>
+                            <input type="range" class="param-slider" id="inDurationSlider" min="100" max="2000" step="50" value="400">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">入场重叠</span>
+                                <span class="param-value" id="overlapVal">0.3</span>
+                            </div>
+                            <input type="range" class="param-slider" id="overlapSlider" min="0" max="0.8" step="0.05" value="0.3">
+                        </div>
+                        <div class="param-item">
+                            <div class="param-label">
+                                <span class="param-name">缓动曲线</span>
+                            </div>
+                            <select class="param-slider" id="easeTypeSelect" style="height:30px;background:var(--bg-tertiary);border:1px solid var(--border-primary);border-radius:6px;color:var(--text-primary);padding:0 8px;font-family:var(--font-sans);font-size:12px;cursor:pointer;">
+                                <option value="linear">线性 (Linear)</option>
+                                <option value="ease">平滑 (Ease)</option>
+                                <option value="easeIn">缓入 (Ease In)</option>
+                                <option value="easeOut">缓出 (Ease Out)</option>
+                                <option value="easeInOut" selected>缓入缓出 (Ease In Out)</option>
+                                <option value="easeOutCubic">三次缓出 (Cubic)</option>
+                                <option value="easeOutQuart">四次缓出 (Quart)</option>
+                                <option value="easeOutExpo">指数缓出 (Expo)</option>
+                                <option value="easeOutCirc">圆形缓出 (Circ)</option>
+                                <option value="bounce">弹跳 (Bounce)</option>
+                                <option value="elastic">弹性 (Elastic)</option>
+                                <option value="back">回退 (Back)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div class="tab-content" id="tab-about">
+                    <div class="section">
+                        <div class="section-title">使用说明</div>
+                        <div style="font-size:12px;color:var(--text-tertiary);line-height:1.7;">
+                            <p style="margin-bottom:8px;">• 左侧选择切换效果</p>
+                            <p style="margin-bottom:8px;">• 右侧调整参数，实时预览</p>
+                            <p style="margin-bottom:8px;">• 拖动底部 Scrubber 精确控制进度</p>
+                            <p style="margin-bottom:8px;">• 支持循环播放模式</p>
+                            <p style="margin-bottom:8px;">• 可输入自定义图片 URL</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">快捷键</div>
+                        <div style="font-size:12px;color:var(--text-tertiary);line-height:1.8;">
+                            <p><code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">Space</code> 播放/暂停</p>
+                            <p><code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">R</code> 重置</p>
+                            <p><code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">↑ ↓</code> 切换效果</p>
+                            <p><code style="background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;">⌘K</code> 搜索效果</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottombar">
+            <div><span class="fps-dot" id="fpsDot"></span><span id="fpsDisplay">60 FPS</span></div>
+            <div class="bottombar-right" id="currentEffectDisplay">当前效果：视差推动</div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Easing Functions ==========
+        const easeFunctions = {
+            linear: t => t,
+            ease: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+            easeIn: t => t * t,
+            easeOut: t => 1 - (1 - t) * (1 - t),
+            easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+            easeOutCubic: t => 1 - Math.pow(1 - t, 3),
+            easeOutQuart: t => 1 - Math.pow(1 - t, 4),
+            easeOutExpo: t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+            easeOutCirc: t => Math.sqrt(1 - Math.pow(t - 1, 2)),
+            bounce: t => {
+                const n1 = 7.5625, d1 = 2.75;
+                if (t < 1 / d1) return n1 * t * t;
+                if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+                if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+                return n1 * (t -= 2.625 / d1) * t + 0.984375;
+            },
+            elastic: t => t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1,
+            back: t => {
+                const c1 = 1.70158, c3 = c1 + 1;
+                return c3 * t * t * t - c1 * t * t;
+            }
+        };
+
+        // ========== Timeline Class ==========
+        class Timeline {
+            constructor(config) {
+                this.outDuration = config.outDuration || 400;
+                this.pauseDuration = config.pauseDuration || 0;
+                this.inDuration = config.inDuration || 400;
+                this.overlap = config.overlap || 0.3;
+                this.easeType = config.easeType || 'ease';
+                this.onProgress = config.onProgress || null;
+                this.onComplete = config.onComplete || null;
+                this.rafId = null;
+                this.startTime = 0;
+                this.isRunning = false;
+            }
+
+            get totalDuration() {
+                return this.outDuration + this.pauseDuration + this.inDuration - this.outDuration * this.overlap;
+            }
+
+            get ease() {
+                return easeFunctions[this.easeType] || easeFunctions.ease;
+            }
+
+            run() {
+                this.isRunning = true;
+                this.startTime = performance.now();
+                
+                const total = this.totalDuration;
+                const outEnd = this.outDuration;
+                const pauseEnd = outEnd + this.pauseDuration;
+                const overlapTime = this.outDuration * this.overlap;
+                const inStart = outEnd - overlapTime;
+
+                const animate = (now) => {
+                    if (!this.isRunning) return;
+                    
+                    const elapsed = now - this.startTime;
+                    const progress = Math.min(elapsed / total, 1);
+                    
+                    let outProgress = 0;
+                    let inProgress = 0;
+
+                    if (elapsed < outEnd) {
+                        outProgress = this.ease(elapsed / this.outDuration);
+                    } else if (elapsed < pauseEnd) {
+                        outProgress = 1;
+                    } else {
+                        outProgress = 1;
+                    }
+
+                    if (elapsed >= inStart && elapsed <= total) {
+                        const inElapsed = elapsed - inStart;
+                        const inTotal = total - inStart;
+                        inProgress = this.ease(inElapsed / inTotal);
+                    } else if (elapsed > total) {
+                        inProgress = 1;
+                    }
+
+                    if (this.onProgress) {
+                        this.onProgress({ progress, outProgress, inProgress, elapsed, total });
+                    }
+
+                    if (progress < 1) {
+                        this.rafId = requestAnimationFrame(animate);
+                    } else {
+                        this.isRunning = false;
+                        if (this.onComplete) this.onComplete();
+                    }
+                };
+                
+                this.rafId = requestAnimationFrame(animate);
+            }
+
+            stop() {
+                this.isRunning = false;
+                if (this.rafId) {
+                    cancelAnimationFrame(this.rafId);
+                    this.rafId = null;
+                }
+            }
+
+            seek(progress) {
+                const total = this.totalDuration;
+                const elapsed = progress * total;
+                const outEnd = this.outDuration;
+                const pauseEnd = outEnd + this.pauseDuration;
+                const overlapTime = this.outDuration * this.overlap;
+                const inStart = outEnd - overlapTime;
+
+                let outProgress = 0;
+                let inProgress = 0;
+
+                if (elapsed < outEnd) {
+                    outProgress = this.ease(elapsed / this.outDuration);
+                } else {
+                    outProgress = 1;
+                }
+
+                if (elapsed >= inStart && elapsed <= total) {
+                    const inElapsed = elapsed - inStart;
+                    const inTotal = total - inStart;
+                    inProgress = this.ease(inElapsed / inTotal);
+                } else if (elapsed > total) {
+                    inProgress = 1;
+                }
+
+                if (this.onProgress) {
+                    this.onProgress({ progress, outProgress, inProgress, elapsed, total });
+                }
+            }
+        }
+
+        // ========== Transition Effects ==========
+        const effects = {
+            parallax: {
+                name: '视差推动',
+                icon: '⇛',
+                category: '视差类',
+                desc: '两张图片以不同速度移动，近景快远景慢，产生空间纵深感',
+                defaultParams: { intensity: 20, parallaxFactor: 0.3 },
+                presets: {
+                    soft: { name: '柔和', intensity: 10, parallaxFactor: 0.2 },
+                    standard: { name: '标准', intensity: 20, parallaxFactor: 0.3 },
+                    strong: { name: '强烈', intensity: 40, parallaxFactor: 0.5 },
+                    cool: { name: '酷炫', intensity: 60, parallaxFactor: 0.7 }
+                },
+                params: [
+                    { key: 'intensity', label: '移动幅度', min: 5, max: 80, step: 5, value: 20, unit: '%' },
+                    { key: 'parallaxFactor', label: '视差比例', min: 0.1, max: 0.9, step: 0.05, value: 0.3, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    inEl.style.transform = `translateX(${p.intensity * (1 - p.parallaxFactor)}%) scale(1.1)`;
+                    outEl.style.transform = 'translateX(0) scale(1.1)';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translateX(${-outProgress * p.intensity}%) scale(1.1)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `translateX(${p.intensity * (1 - p.parallaxFactor) - inProgress * p.intensity * (1 - p.parallaxFactor)}%) scale(1.1)`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        inEl.style.transform = 'scale(1.1)';
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            slideLeft: {
+                name: '左滑',
+                icon: '←',
+                category: '基础位移',
+                desc: '新图片从右侧滑入，旧图片从左侧滑出',
+                defaultParams: {},
+                presets: { soft: {}, standard: {}, strong: {}, cool: {} },
+                params: [],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.transform = 'translateX(100%)';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translateX(${-outProgress * 100}%)`;
+                        inEl.style.transform = `translateX(${100 - inProgress * 100}%)`;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            slideUp: {
+                name: '上滑',
+                icon: '↑',
+                category: '基础位移',
+                desc: '新图片从下方滑入，旧图片从上方滑出',
+                defaultParams: {},
+                presets: { soft: {}, standard: {}, strong: {}, cool: {} },
+                params: [],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.transform = 'translateY(100%)';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translateY(${-outProgress * 100}%)`;
+                        inEl.style.transform = `translateY(${100 - inProgress * 100}%)`;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            fade: {
+                name: '淡入淡出',
+                icon: '◯',
+                category: '基础动效',
+                desc: '最基础的透明度渐变切换',
+                defaultParams: {},
+                presets: { soft: {}, standard: {}, strong: {}, cool: {} },
+                params: [],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.opacity = 1 - outProgress;
+                        inEl.style.opacity = inProgress;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            zoomIn: {
+                name: '缩放推进',
+                icon: '⊕',
+                category: '缩放类',
+                desc: '旧图片缩小淡出，新图片放大淡入，模拟镜头推进',
+                defaultParams: { zoomScale: 0.8 },
+                presets: {
+                    soft: { zoomScale: 0.9 },
+                    standard: { zoomScale: 0.8 },
+                    strong: { zoomScale: 0.65 },
+                    cool: { zoomScale: 0.5 }
+                },
+                params: [
+                    { key: 'zoomScale', label: '缩放比例', min: 0.3, max: 0.95, step: 0.05, value: 0.8, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    inEl.style.transform = `scale(${1 + (1 - p.zoomScale)})`;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `scale(${1 - outProgress * (1 - p.zoomScale)})`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `scale(${1 + (1 - p.zoomScale) - inProgress * (1 - p.zoomScale)})`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            blur: {
+                name: '模糊切换',
+                icon: '◐',
+                category: '模糊类',
+                desc: '旧图片模糊淡出，新图片清晰淡入',
+                defaultParams: { blurAmount: 20 },
+                presets: {
+                    soft: { blurAmount: 10 },
+                    standard: { blurAmount: 20 },
+                    strong: { blurAmount: 40 },
+                    cool: { blurAmount: 60 }
+                },
+                params: [
+                    { key: 'blurAmount', label: '模糊强度', min: 5, max: 80, step: 5, value: 20, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    inEl.style.filter = `blur(${p.blurAmount}px)`;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.filter = `blur(${outProgress * p.blurAmount}px)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.filter = `blur(${p.blurAmount - inProgress * p.blurAmount}px)`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            swipeWipe: {
+                name: '横扫擦除',
+                icon: '▎',
+                category: '遮罩类',
+                desc: '一道光带从左扫到右，新图片随之出现',
+                defaultParams: { barWidth: 5, glowIntensity: 30 },
+                presets: {
+                    soft: { barWidth: 8, glowIntensity: 20 },
+                    standard: { barWidth: 5, glowIntensity: 30 },
+                    strong: { barWidth: 3, glowIntensity: 50 },
+                    cool: { barWidth: 1, glowIntensity: 80 }
+                },
+                params: [
+                    { key: 'barWidth', label: '光带宽度', min: 1, max: 20, step: 1, value: 5, unit: '%' },
+                    { key: 'glowIntensity', label: '光晕强度', min: 0, max: 100, step: 10, value: 30, unit: '%' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.clipPath = `inset(0 100% 0 0)`;
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        const wipePos = progress * 100;
+                        const leftInset = Math.max(0, wipePos - p.barWidth / 2);
+                        const rightInset = Math.max(0, 100 - wipePos - p.barWidth / 2);
+                        
+                        outEl.style.clipPath = `inset(0 0 0 ${wipePos + p.barWidth / 2}%)`;
+                        inEl.style.clipPath = `inset(0 ${Math.max(0, 100 - wipePos + p.barWidth / 2)}% 0 0)`;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            blinds: {
+                name: '百叶窗',
+                icon: '≡',
+                category: '遮罩类',
+                desc: '图片被切成若干水平条带，依次交错滑入',
+                defaultParams: { strips: 8, stagger: 0.3 },
+                presets: {
+                    soft: { strips: 5, stagger: 0.4 },
+                    standard: { strips: 8, stagger: 0.3 },
+                    strong: { strips: 12, stagger: 0.2 },
+                    cool: { strips: 16, stagger: 0.15 }
+                },
+                params: [
+                    { key: 'strips', label: '切分数量', min: 3, max: 20, step: 1, value: 8, unit: '条' },
+                    { key: 'stagger', label: '错峰比例', min: 0.1, max: 0.6, step: 0.05, value: 0.3, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outSrc = outEl.src;
+                    const inSrc = inEl.src;
+                    
+                    function createBlinds(el, src) {
+                        el.innerHTML = '';
+                        el.style.opacity = '1';
+                        el.style.background = 'transparent';
+                        for (let i = 0; i < p.strips; i++) {
+                            const strip = document.createElement('div');
+                            strip.style.cssText = `position:absolute;top:${(i/p.strips)*100}%;left:0;width:100%;height:${100/p.strips}%;overflow:hidden;will-change:transform;`;
+                            const inner = document.createElement('div');
+                            inner.style.cssText = `position:absolute;top:${-i*100}%;left:0;width:100%;height:${p.strips*100}%;background-image:url(${src});background-size:cover;background-position:center;will-change:transform;`;
+                            strip.appendChild(inner);
+                            el.appendChild(strip);
+                        }
+                    }
+                    
+                    createBlinds(outEl, outSrc);
+                    createBlinds(inEl, inSrc);
+                    
+                    const outStrips = outEl.querySelectorAll('div > div');
+                    const inStrips = inEl.querySelectorAll('div > div');
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outStrips.forEach((s, i) => {
+                            const delay = i / p.strips * p.stagger;
+                            const stripProgress = Math.max(0, Math.min(1, (outProgress - delay) / (1 - p.stagger)));
+                            s.style.transform = `translateY(${-stripProgress * 100}%)`;
+                            s.style.opacity = 1 - stripProgress;
+                        });
+                        
+                        inStrips.forEach((s, i) => {
+                            const delay = i / p.strips * p.stagger;
+                            const stripProgress = Math.max(0, Math.min(1, (inProgress - delay) / (1 - p.stagger)));
+                            s.style.transform = `translateY(${(1 - stripProgress) * 100}%)`;
+                            s.style.opacity = stripProgress;
+                        });
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        outEl.innerHTML = '';
+                        inEl.innerHTML = '';
+                        outEl.style.background = '';
+                        inEl.style.background = '';
+                        outEl.src = outSrc;
+                        inEl.src = inSrc;
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            circleReveal: {
+                name: '圆形扩散',
+                icon: '◎',
+                category: '遮罩类',
+                desc: '新图片以圆形从中心向外扩散出现',
+                defaultParams: { startSize: 0 },
+                presets: {
+                    soft: { startSize: 20 },
+                    standard: { startSize: 0 },
+                    strong: { startSize: 0 },
+                    cool: { startSize: 0 }
+                },
+                params: [
+                    { key: 'startSize', label: '起始大小', min: 0, max: 50, step: 5, value: 0, unit: '%' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.clipPath = `circle(${p.startSize}% at 50% 50%)`;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        const circleSize = p.startSize + inProgress * (100 - p.startSize);
+                        inEl.style.clipPath = `circle(${circleSize}% at 50% 50%)`;
+                        outEl.style.opacity = 1 - outProgress * 0.5;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            rotate: {
+                name: '旋转翻转',
+                icon: '⟳',
+                category: '3D类',
+                desc: '图片3D旋转切换，模拟翻书效果',
+                defaultParams: { perspective: 1000, angle: 90 },
+                presets: {
+                    soft: { perspective: 1500, angle: 60 },
+                    standard: { perspective: 1000, angle: 90 },
+                    strong: { perspective: 600, angle: 120 },
+                    cool: { perspective: 400, angle: 180 }
+                },
+                params: [
+                    { key: 'perspective', label: '透视强度', min: 200, max: 2000, step: 50, value: 1000, unit: 'px' },
+                    { key: 'angle', label: '旋转角度', min: 30, max: 180, step: 10, value: 90, unit: 'deg' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    document.getElementById('previewStage').style.perspective = p.perspective + 'px';
+                    inEl.style.opacity = 0;
+                    inEl.style.transformOrigin = 'left center';
+                    outEl.style.transformOrigin = 'right center';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `rotateY(${-outProgress * p.angle}deg)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.transform = `rotateY(${p.angle - inProgress * p.angle}deg)`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        document.getElementById('previewStage').style.perspective = '';
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            pushStack: {
+                name: '堆叠推送',
+                icon: '⬚',
+                category: '堆叠类',
+                desc: '旧图片向上推走，新图片从下方顶上来，有堆叠层次感',
+                defaultParams: { scaleFactor: 0.9 },
+                presets: {
+                    soft: { scaleFactor: 0.95 },
+                    standard: { scaleFactor: 0.9 },
+                    strong: { scaleFactor: 0.8 },
+                    cool: { scaleFactor: 0.7 }
+                },
+                params: [
+                    { key: 'scaleFactor', label: '缩放比例', min: 0.6, max: 0.98, step: 0.02, value: 0.9, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.transform = `translateY(100%) scale(${p.scaleFactor})`;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `translateY(${-outProgress * 30}%) scale(${1 - outProgress * (1 - p.scaleFactor)})`;
+                        outEl.style.opacity = 1 - outProgress * 0.3;
+                        
+                        inEl.style.transform = `translateY(${100 - inProgress * 100}%) scale(${p.scaleFactor + inProgress * (1 - p.scaleFactor)})`;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            diagonalWipe: {
+                name: '对角擦除',
+                icon: '⟋',
+                category: '遮罩类',
+                desc: '从左上角到右下角的对角线擦除效果',
+                defaultParams: { angle: 45 },
+                presets: {
+                    soft: { angle: 30 },
+                    standard: { angle: 45 },
+                    strong: { angle: 60 },
+                    cool: { angle: 90 }
+                },
+                params: [
+                    { key: 'angle', label: '角度', min: 0, max: 90, step: 5, value: 45, unit: 'deg' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    const rad = p.angle * Math.PI / 180;
+                    const diagonal = 100 / Math.cos(rad);
+                    
+                    timeline.onProgress = ({ progress, elapsed, total }) => {
+                        const offset = progress * diagonal;
+                        inEl.style.clipPath = `polygon(${offset * Math.cos(rad)}% 0, 100% 0, 100% 100%, 0 100%, 0 ${offset * Math.sin(rad)}%)`;
+                        outEl.style.opacity = 1;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            heartReveal: {
+                name: '心形扩散',
+                icon: '♥',
+                category: '遮罩类',
+                desc: '以心形从中心扩散，适合浪漫/情人节场景',
+                defaultParams: { scale: 1 },
+                presets: { soft: { scale: 0.8 }, standard: { scale: 1 }, strong: { scale: 1.2 }, cool: { scale: 1.5 } },
+                params: [
+                    { key: 'scale', label: '心形大小', min: 0.5, max: 2, step: 0.1, value: 1, unit: 'x' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 1;
+                    inEl.style.clipPath = `path('M50,60 C20,40 0,25 0,15 C0,5 10,0 20,0 C30,0 40,10 50,20 C60,10 70,0 80,0 C90,0 100,5 100,15 C100,25 80,40 50,60')`;
+                    
+                    timeline.onProgress = ({ inProgress, progress, elapsed, total }) => {
+                        const scale = 0.1 + inProgress * p.scale * 1.5;
+                        inEl.style.clipPath = `circle(${inProgress * 70}% at 50% 50%)`;
+                        outEl.style.opacity = 1 - inProgress * 0.5;
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            pixelate: {
+                name: '像素化',
+                icon: '▦',
+                category: '风格化',
+                desc: '旧图片像素化消失，新图片从像素化变清晰',
+                defaultParams: { pixelSize: 40 },
+                presets: {
+                    soft: { pixelSize: 20 },
+                    standard: { pixelSize: 40 },
+                    strong: { pixelSize: 60 },
+                    cool: { pixelSize: 100 }
+                },
+                params: [
+                    { key: 'pixelSize', label: '像素大小', min: 10, max: 100, step: 5, value: 40, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        const outPixels = outProgress * p.pixelSize;
+                        const inPixels = (1 - inProgress) * p.pixelSize;
+                        outEl.style.imageRendering = 'pixelated';
+                        outEl.style.transform = `scale(${1 + outProgress * 0.05})`;
+                        outEl.style.filter = `blur(${outProgress * 2}px)`;
+                        outEl.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.imageRendering = 'pixelated';
+                        inEl.style.filter = `blur(${inPixels / 20}px)`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            glide: {
+                name: '滑翔叠加',
+                icon: '⇪',
+                category: '视差类',
+                desc: '新图片带着微弱缩放从远处滑翔过来，覆盖在旧图片上',
+                defaultParams: { yOffset: 15, scaleDiff: 0.05 },
+                presets: {
+                    soft: { yOffset: 8, scaleDiff: 0.02 },
+                    standard: { yOffset: 15, scaleDiff: 0.05 },
+                    strong: { yOffset: 25, scaleDiff: 0.08 },
+                    cool: { yOffset: 40, scaleDiff: 0.12 }
+                },
+                params: [
+                    { key: 'yOffset', label: '垂直位移', min: 5, max: 50, step: 5, value: 15, unit: '%' },
+                    { key: 'scaleDiff', label: '缩放差', min: 0.01, max: 0.15, step: 0.01, value: 0.05, unit: '' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    inEl.style.opacity = 0;
+                    inEl.style.transform = `translateY(${p.yOffset}%) scale(${1 + p.scaleDiff})`;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `scale(${1 - outProgress * p.scaleDiff * 0.5})`;
+                        outEl.style.opacity = 1 - outProgress * 0.3;
+                        
+                        inEl.style.transform = `translateY(${p.yOffset - inProgress * p.yOffset}%) scale(${1 + p.scaleDiff - inProgress * p.scaleDiff})`;
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            splitVertical: {
+                name: '左右开门',
+                icon: '⇔',
+                category: '切割类',
+                desc: '图片从中间分成左右两半，向两边打开露出新图片',
+                defaultParams: { gap: 10 },
+                presets: { soft: { gap: 5 }, standard: { gap: 10 }, strong: { gap: 20 }, cool: { gap: 40 } },
+                params: [
+                    { key: 'gap', label: '开启幅度', min: 5, max: 50, step: 5, value: 10, unit: '%' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const outSrc = outEl.src;
+                    outEl.innerHTML = '';
+                    outEl.style.opacity = '1';
+                    
+                    const leftHalf = document.createElement('div');
+                    leftHalf.style.cssText = `position:absolute;top:0;left:0;width:50%;height:100%;overflow:hidden;will-change:transform;`;
+                    const leftInner = document.createElement('div');
+                    leftInner.style.cssText = `position:absolute;top:0;left:0;width:200%;height:100%;background-image:url(${outSrc});background-size:cover;background-position:center;`;
+                    leftHalf.appendChild(leftInner);
+                    
+                    const rightHalf = document.createElement('div');
+                    rightHalf.style.cssText = `position:absolute;top:0;right:0;width:50%;height:100%;overflow:hidden;will-change:transform;`;
+                    const rightInner = document.createElement('div');
+                    rightInner.style.cssText = `position:absolute;top:0;right:0;width:200%;height:100%;background-image:url(${outSrc});background-size:cover;background-position:center;`;
+                    rightHalf.appendChild(rightInner);
+                    
+                    outEl.appendChild(leftHalf);
+                    outEl.appendChild(rightHalf);
+                    
+                    inEl.style.opacity = 0;
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        leftHalf.style.transform = `translateX(${-outProgress * p.gap}%)`;
+                        rightHalf.style.transform = `translateX(${outProgress * p.gap}%)`;
+                        leftHalf.style.opacity = 1 - outProgress;
+                        rightHalf.style.opacity = 1 - outProgress;
+                        
+                        inEl.style.opacity = inProgress;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        outEl.innerHTML = '';
+                        outEl.src = outSrc;
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            },
+
+            cube: {
+                name: '3D 立方体',
+                icon: '⬛',
+                category: '3D类',
+                desc: '像立方体的面一样翻转切换，有强烈的空间感',
+                defaultParams: { perspective: 800 },
+                presets: {
+                    soft: { perspective: 1200 },
+                    standard: { perspective: 800 },
+                    strong: { perspective: 500 },
+                    cool: { perspective: 300 }
+                },
+                params: [
+                    { key: 'perspective', label: '透视强度', min: 200, max: 1500, step: 50, value: 800, unit: 'px' }
+                ],
+                animate: (outEl, inEl, p, g, callback, timeline) => {
+                    const stage = document.getElementById('previewStage');
+                    stage.style.perspective = p.perspective + 'px';
+                    stage.style.transformStyle = 'preserve-3d';
+                    
+                    inEl.style.opacity = 1;
+                    inEl.style.transformOrigin = 'top center';
+                    inEl.style.transform = 'rotateX(90deg)';
+                    outEl.style.transformOrigin = 'bottom center';
+                    
+                    timeline.onProgress = ({ outProgress, inProgress, progress, elapsed, total }) => {
+                        outEl.style.transform = `rotateX(${-outProgress * 90}deg)`;
+                        outEl.style.opacity = 1 - outProgress * 0.5;
+                        
+                        inEl.style.transform = `rotateX(${90 - inProgress * 90}deg)`;
+                        inEl.style.opacity = 0.5 + inProgress * 0.5;
+                        
+                        updateScrubber(progress, elapsed, total);
+                    };
+                    timeline.onComplete = () => {
+                        stage.style.perspective = '';
+                        stage.style.transformStyle = '';
+                        resetImage(outEl);
+                        resetImage(inEl);
+                        outEl.style.opacity = 0;
+                        inEl.style.opacity = 1;
+                        callback();
+                    };
+                    timeline.run();
+                }
+            }
+        };
+
+        // ========== State ==========
+        let currentEffect = 'parallax';
+        let isAnimating = false;
+        let showingA = true;
+        let currentParams = {};
+        let currentTimeline = null;
+        let isLooping = false;
+        let isScrubbing = false;
+        let frameCount = 0;
+        let fps = 60;
+        let lastFpsTime = performance.now();
+
+        const globals = {
+            outDuration: 400,
+            pauseDuration: 0,
+            inDuration: 400,
+            overlap: 0.3,
+            easeType: 'easeInOut',
+            charDelay: 0
+        };
+
+        // ========== DOM Refs ==========
+        const imageA = document.getElementById('imageA');
+        const imageB = document.getElementById('imageB');
+        const playBtn = document.getElementById('playBtn');
+        const effectList = document.getElementById('effectList');
+        const effectParams = document.getElementById('effectParams');
+        const presetRow = document.getElementById('presetRow');
+        const scrubberTrack = document.getElementById('scrubberTrack');
+        const scrubberFill = document.getElementById('scrubberFill');
+        const scrubberThumb = document.getElementById('scrubberThumb');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+        const totalTimeScrubber = document.getElementById('totalTimeScrubber');
+        const infoEffectName = document.getElementById('infoEffectName');
+        const infoEffectDesc = document.getElementById('infoEffectDesc');
+        const currentEffectDisplay = document.getElementById('currentEffectDisplay');
+        const effectSearch = document.getElementById('effectSearch');
+        const effectCount = document.getElementById('effectCount');
+        const loopBtn = document.getElementById('loopBtn');
+        const bgToggleBtn = document.getElementById('bgToggleBtn');
+        const gridBg = document.getElementById('gridBg');
+        const fpsDisplay = document.getElementById('fpsDisplay');
+        const fpsDot = document.getElementById('fpsDot');
+        const canvas = document.getElementById('canvasLayer');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+
+        // ========== Default Images ==========
+        const defaultImages = {
+            A: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+            B: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80'
+        };
+
+        imageA.src = defaultImages.A;
+        imageB.src = defaultImages.B;
+        document.getElementById('imageAUrl').value = defaultImages.A;
+        document.getElementById('imageBUrl').value = defaultImages.B;
+
+        // ========== Helpers ==========
+        function resetImage(el) {
+            el.style.transform = '';
+            el.style.opacity = '';
+            el.style.filter = '';
+            el.style.clipPath = '';
+            el.style.transformOrigin = '';
+            el.style.imageRendering = '';
+        }
+
+        function updateScrubber(progress, elapsed, total) {
+            const pct = progress * 100;
+            scrubberFill.style.width = pct + '%';
+            scrubberThumb.style.left = pct + '%';
+            currentTimeDisplay.textContent = Math.round(elapsed) + 'ms';
+            updateFPS();
+        }
+
+        function updateFPS() {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastFpsTime >= 500) {
+                fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                fpsDisplay.textContent = fps + ' FPS';
+                fpsDot.style.background = fps >= 55 ? '#22c55e' : fps >= 30 ? '#f59e0b' : '#ef4444';
+                frameCount = 0;
+                lastFpsTime = now;
+            }
+        }
+
+        // ========== Build Effect List ==========
+        function buildEffectList(filter = '') {
+            effectList.innerHTML = '';
+            const categories = {};
+            let visibleCount = 0;
+            
+            Object.keys(effects).forEach(key => {
+                const eff = effects[key];
+                if (filter && !eff.name.includes(filter) && !eff.desc.includes(filter) && !eff.category.includes(filter)) return;
+                
+                if (!categories[eff.category]) categories[eff.category] = [];
+                categories[eff.category].push({ key, ...eff });
+                visibleCount++;
+            });
+            
+            effectCount.textContent = visibleCount;
+            
+            Object.keys(categories).forEach(cat => {
+                const catEl = document.createElement('div');
+                catEl.className = 'effect-category';
+                catEl.textContent = cat;
+                effectList.appendChild(catEl);
+                
+                categories[cat].forEach(eff => {
+                    const btn = document.createElement('button');
+                    btn.className = 'effect-btn' + (eff.key === currentEffect ? ' active' : '');
+                    btn.innerHTML = `<span class="effect-icon">${eff.icon}</span><span>${eff.name}</span>`;
+                    btn.addEventListener('click', () => {
+                        currentEffect = eff.key;
+                        loadParams(eff.key);
+                        renderParams();
+                        buildEffectList(effectSearch.value);
+                        infoEffectName.textContent = eff.name;
+                        infoEffectDesc.textContent = eff.desc;
+                        currentEffectDisplay.textContent = '当前效果：' + eff.name;
+                        triggerAutoPreview();
+                    });
+                    effectList.appendChild(btn);
+                });
+            });
+        }
+
+        // ========== Params ==========
+        function loadParams(key) {
+            currentParams = {};
+            effects[key].params.forEach(p => {
+                currentParams[p.key] = p.value;
+            });
+        }
+
+        function renderParams() {
+            effectParams.innerHTML = '';
+            const effect = effects[currentEffect];
+            
+            if (effect.params.length === 0) {
+                effectParams.innerHTML = '<div style="font-size: 12px; color: var(--text-tertiary); text-align: center; padding: 20px 0;">此效果无参数</div>';
+                renderPresets();
+                return;
+            }
+            
+            effect.params.forEach(param => {
+                const item = document.createElement('div');
+                item.className = 'param-item';
+                
+                const label = document.createElement('div');
+                label.className = 'param-label';
+                label.innerHTML = `<span class="param-name">${param.label}</span><span class="param-value" id="val-${param.key}">${param.value}${param.unit || ''}</span>`;
+                
+                const row = document.createElement('div');
+                row.className = 'param-slider-row';
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'param-slider';
+                slider.min = param.min;
+                slider.max = param.max;
+                slider.step = param.step;
+                slider.value = param.value;
+                slider.id = 'slider-' + param.key;
+                
+                slider.addEventListener('input', () => {
+                    const val = parseFloat(slider.value);
+                    currentParams[param.key] = val;
+                    document.getElementById('val-' + param.key).textContent = val + (param.unit || '');
+                    triggerAutoPreview();
+                });
+                
+                row.appendChild(slider);
+                item.appendChild(label);
+                item.appendChild(row);
+                effectParams.appendChild(item);
+            });
+            
+            renderPresets();
+        }
+
+        function renderPresets() {
+            presetRow.innerHTML = '';
+            const effect = effects[currentEffect];
+            const presetNames = { soft: '柔和', standard: '标准', strong: '强烈', cool: '酷炫' };
+            
+            Object.keys(effect.presets).forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'preset-btn';
+                btn.textContent = effect.presets[key].name || presetNames[key] || key;
+                btn.addEventListener('click', () => {
+                    Object.keys(effect.presets[key]).forEach(pk => {
+                        if (pk === 'name') return;
+                        currentParams[pk] = effect.presets[key][pk];
+                        const slider = document.getElementById('slider-' + pk);
+                        const valEl = document.getElementById('val-' + pk);
+                        if (slider) slider.value = effect.presets[key][pk];
+                        if (valEl) valEl.textContent = effect.presets[key][pk] + (effects[currentEffect].params.find(p=>p.key===pk)?.unit || '');
+                    });
+                    triggerAutoPreview();
+                });
+                presetRow.appendChild(btn);
+            });
+        }
+
+        // ========== Timeline Stats ==========
+        function updateTimelineStats() {
+            const total = globals.outDuration + globals.pauseDuration + globals.inDuration - globals.outDuration * globals.overlap;
+            const outPercent = total > 0 ? (globals.outDuration / total) * 100 : 0;
+            const inPercent = total > 0 ? (globals.inDuration / total) * 100 : 0;
+            const pausePercent = total > 0 ? (globals.pauseDuration / total) * 100 : 0;
+            const overlapMs = Math.round(globals.outDuration * globals.overlap);
+            
+            document.getElementById('statTotal').textContent = Math.round(total) + 'ms';
+            document.getElementById('statOut').textContent = Math.round(outPercent) + '%';
+            document.getElementById('statIn').textContent = Math.round(inPercent) + '%';
+            document.getElementById('statOverlap').textContent = overlapMs + 'ms';
+            totalTimeDisplay.textContent = Math.round(total) + 'ms';
+            totalTimeScrubber.textContent = Math.round(total) + 'ms';
+            
+            document.getElementById('visOut').style.width = outPercent + '%';
+            document.getElementById('visPause').style.width = pausePercent + '%';
+            document.getElementById('visIn').style.width = inPercent + '%';
+        }
+
+        // ========== Auto Preview ==========
+        let autoPreviewTimer = null;
+        function triggerAutoPreview() {
+            clearTimeout(autoPreviewTimer);
+            autoPreviewTimer = setTimeout(() => {
+                if (!isAnimating) play();
+            }, 300);
+        }
+
+        // ========== Play ==========
+        function play() {
+            if (isAnimating && currentTimeline) {
+                currentTimeline.stop();
+                isAnimating = false;
+            }
+            
+            resetImage(imageA);
+            resetImage(imageB);
+            
+            if (showingA) {
+                imageA.style.opacity = '1';
+                imageB.style.opacity = '0';
+            } else {
+                imageA.style.opacity = '0';
+                imageB.style.opacity = '1';
+            }
+            
+            const outEl = showingA ? imageA : imageB;
+            const inEl = showingA ? imageB : imageA;
+            
+            currentTimeline = new Timeline({
+                outDuration: globals.outDuration,
+                pauseDuration: globals.pauseDuration,
+                inDuration: globals.inDuration,
+                overlap: globals.overlap,
+                easeType: globals.easeType
+            });
+            
+            isAnimating = true;
+            playBtn.textContent = '■';
+            
+            effects[currentEffect].animate(outEl, inEl, currentParams, globals, () => {
+                isAnimating = false;
+                showingA = !showingA;
+                playBtn.textContent = '▶';
+                
+                if (isLooping) {
+                    setTimeout(play, 500);
+                }
+            }, currentTimeline);
+        }
+
+        // ========== Scrubber ==========
+        function handleScrub(e) {
+            const rect = scrubberTrack.getBoundingClientRect();
+            const progress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            
+            if (isAnimating && currentTimeline) {
+                currentTimeline.stop();
+            }
+            
+            const tempTimeline = new Timeline({
+                outDuration: globals.outDuration,
+                pauseDuration: globals.pauseDuration,
+                inDuration: globals.inDuration,
+                overlap: globals.overlap,
+                easeType: globals.easeType
+            });
+            
+            resetImage(imageA);
+            resetImage(imageB);
+            imageA.style.opacity = '1';
+            imageB.style.opacity = '0';
+            
+            effects[currentEffect].animate(imageA, imageB, currentParams, globals, () => {}, tempTimeline);
+            
+            tempTimeline.seek(progress);
+            tempTimeline.stop();
+            
+            isAnimating = false;
+        }
+
+        scrubberTrack.addEventListener('mousedown', (e) => {
+            isScrubbing = true;
+            handleScrub(e);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isScrubbing) handleScrub(e);
+        });
+
+        document.addEventListener('mouseup', () => {
+            isScrubbing = false;
+        });
+
+        // ========== Tab Switching ==========
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ========== Play Button ==========
+        playBtn.addEventListener('click', play);
+
+        // ========== Image Inputs ==========
+        document.getElementById('imageAUrl').addEventListener('change', (e) => {
+            imageA.src = e.target.value;
+        });
+
+        document.getElementById('imageBUrl').addEventListener('change', (e) => {
+            imageB.src = e.target.value;
+        });
+
+        // ========== Swap Button ==========
+        document.getElementById('imageSwapBtn').addEventListener('click', () => {
+            const tempUrl = document.getElementById('imageAUrl').value;
+            document.getElementById('imageAUrl').value = document.getElementById('imageBUrl').value;
+            document.getElementById('imageBUrl').value = tempUrl;
+            
+            const tempSrc = imageA.src;
+            imageA.src = imageB.src;
+            imageB.src = tempSrc;
+            
+            showingA = true;
+            resetImage(imageA);
+            resetImage(imageB);
+            imageA.style.opacity = '1';
+            imageB.style.opacity = '0';
+        });
+
+        // ========== Loop Button ==========
+        loopBtn.addEventListener('click', () => {
+            isLooping = !isLooping;
+            loopBtn.classList.toggle('active', isLooping);
+        });
+
+        // ========== Grid Toggle ==========
+        bgToggleBtn.addEventListener('click', () => {
+            gridBg.classList.toggle('hidden');
+            bgToggleBtn.classList.toggle('active', !gridBg.classList.contains('hidden'));
+        });
+
+        // ========== Search ==========
+        effectSearch.addEventListener('input', () => {
+            buildEffectList(effectSearch.value);
+        });
+
+        // ========== Timeline Controls ==========
+        document.getElementById('outDurationSlider').addEventListener('input', (e) => {
+            globals.outDuration = parseFloat(e.target.value);
+            document.getElementById('outDurationVal').textContent = globals.outDuration + 'ms';
+            updateTimelineStats();
+            triggerAutoPreview();
+        });
+
+        document.getElementById('pauseDurationSlider').addEventListener('input', (e) => {
+            globals.pauseDuration = parseFloat(e.target.value);
+            document.getElementById('pauseDurationVal').textContent = globals.pauseDuration + 'ms';
+            updateTimelineStats();
+            triggerAutoPreview();
+        });
+
+        document.getElementById('inDurationSlider').addEventListener('input', (e) => {
+            globals.inDuration = parseFloat(e.target.value);
+            document.getElementById('inDurationVal').textContent = globals.inDuration + 'ms';
+            updateTimelineStats();
+            triggerAutoPreview();
+        });
+
+        document.getElementById('overlapSlider').addEventListener('input', (e) => {
+            globals.overlap = parseFloat(e.target.value);
+            document.getElementById('overlapVal').textContent = globals.overlap.toFixed(2);
+            updateTimelineStats();
+            triggerAutoPreview();
+        });
+
+        document.getElementById('easeTypeSelect').addEventListener('change', (e) => {
+            globals.easeType = e.target.value;
+            triggerAutoPreview();
+        });
+
+        // ========== Top Bar Tab ==========
+        document.querySelectorAll('.topbar-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.dataset.type === 'text') {
+                    window.location.href = 'text-effects-demo.html';
+                }
+            });
+        });
+
+        // ========== Keyboard Shortcuts ==========
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                play();
+            }
+            if (e.code === 'KeyR') {
+                resetImage(imageA);
+                resetImage(imageB);
+                showingA = true;
+                imageA.style.opacity = '1';
+                imageB.style.opacity = '0';
+                scrubberFill.style.width = '0%';
+                scrubberThumb.style.left = '0%';
+                currentTimeDisplay.textContent = '0ms';
+            }
+            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+                e.preventDefault();
+                effectSearch.focus();
+            }
+        });
+
+        // ========== Perf Mode ==========
+        let performanceMode = localStorage.getItem('imgMotionPerfMode') || 'quality';
+
+        function updatePerfModeBtn() {
+            const btn = document.getElementById('perfModeBtn');
+            if (performanceMode === 'performance') {
+                btn.textContent = '⚡ 流畅模式';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                document.body.classList.add('perf-mode-performance');
+            } else {
+                btn.textContent = '🎨 高画质';
+                btn.style.borderColor = 'var(--border-primary)';
+                btn.style.color = 'var(--text-secondary)';
+                document.body.classList.remove('perf-mode-performance');
+            }
+        }
+
+        document.getElementById('perfModeBtn').addEventListener('click', () => {
+            performanceMode = performanceMode === 'quality' ? 'performance' : 'quality';
+            localStorage.setItem('imgMotionPerfMode', performanceMode);
+            updatePerfModeBtn();
+            triggerAutoPreview();
+        });
+
+        // ========== Init ==========
+        function init() {
+            imageA.style.opacity = '1';
+            imageB.style.opacity = '0';
+            buildEffectList();
+            loadParams(currentEffect);
+            renderParams();
+            updateTimelineStats();
+            updatePerfModeBtn();
+            infoEffectName.textContent = effects[currentEffect].name;
+            infoEffectDesc.textContent = effects[currentEffect].desc;
+            currentEffectDisplay.textContent = '当前效果：' + effects[currentEffect].name;
+        }
+
+        init();
+    </script>
+</body>
+</html>
