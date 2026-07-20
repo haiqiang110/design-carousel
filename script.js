@@ -163,8 +163,11 @@ function createCards() {
     const color2 = `rgb(${colors.c2[0]}, ${colors.c2[1]}, ${colors.c2[2]})`;
 
     card.innerHTML = `
-      <div class="card__inner" style="--card-accent1: ${color1}; --card-accent2: ${color2};">
-        <img class="card__img" src="${node.image}" alt="${node.title}" decoding="async" loading="eager" />
+      <div class="card__hover">
+        <div class="card__inner">
+          <div class="card__glow"></div>
+          <img class="card__img" src="${node.image}" alt="${node.title}" decoding="async" loading="eager" />
+        </div>
       </div>
     `;
 
@@ -179,13 +182,131 @@ function createCards() {
   cardsRoot.appendChild(fragment);
 }
 
+function setupCardHoverEffects() {
+  const cards = document.querySelectorAll('.card');
+  const maxRotation = 8;
+
+  cards.forEach((card) => {
+    const hover = card.querySelector('.card__hover');
+
+    card.addEventListener('mouseenter', () => {
+    });
+
+    card.addEventListener('mouseleave', () => {
+      hover.style.setProperty('--rotate-x', '0deg');
+      hover.style.setProperty('--rotate-y', '0deg');
+      hover.style.setProperty('--mouse-x', '50%');
+      hover.style.setProperty('--mouse-y', '50%');
+    });
+
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -maxRotation;
+      const rotateY = ((x - centerX) / centerX) * maxRotation;
+
+      hover.style.setProperty('--rotate-x', `${rotateX}deg`);
+      hover.style.setProperty('--rotate-y', `${rotateY}deg`);
+      hover.style.setProperty('--mouse-x', `${x}px`);
+      hover.style.setProperty('--mouse-y', `${y}px`);
+    });
+  });
+}
+
 function handleCardClick(index) {
   if (isEntering) return;
 
   if (index === activeIndex) {
-    window.openModal(index);
+    openFlipModal(index);
   } else {
     goToIndex(index);
+  }
+}
+
+let flipOverlay = null;
+let flipContainer = null;
+let flipFrontImg = null;
+let flipBackImg = null;
+let flipCloseBtn = null;
+
+function openFlipModal(index) {
+  const node = NODES[index];
+  const card = items[index].el;
+
+  if (!flipOverlay) {
+    flipOverlay = document.getElementById('cardFlipOverlay');
+    flipContainer = flipOverlay.querySelector('.card-flip-container');
+    flipFrontImg = document.getElementById('flipFrontImg');
+    flipBackImg = document.getElementById('flipBackImg');
+    flipCloseBtn = document.getElementById('flipCloseBtn');
+  }
+
+  const cardRect = card.getBoundingClientRect();
+  const overlayRect = flipOverlay.getBoundingClientRect();
+
+  const startX = cardRect.left + cardRect.width / 2 - overlayRect.left;
+  const startY = cardRect.top + cardRect.height / 2 - overlayRect.top;
+  const startScaleX = cardRect.width / flipContainer.offsetWidth;
+  const startScaleY = cardRect.height / flipContainer.offsetHeight;
+
+  flipFrontImg.src = node.image;
+  flipBackImg.src = node.modalImage;
+
+  flipContainer.style.transition = 'none';
+  flipContainer.style.transform = `translate(${startX - flipContainer.offsetWidth / 2}px, ${startY - flipContainer.offsetHeight / 2}px) scale(${startScaleX}, ${startScaleY})`;
+  flipContainer.offsetHeight;
+
+  flipOverlay.classList.add('is-active');
+
+  requestAnimationFrame(() => {
+    flipContainer.style.transition = '';
+    flipContainer.style.transform = '';
+  });
+
+  flipCloseBtn.onclick = (e) => {
+    e.stopPropagation();
+    closeFlipModal();
+  };
+
+  flipOverlay.onclick = (e) => {
+    if (e.target === flipOverlay) {
+      closeFlipModal();
+    }
+  };
+
+  document.addEventListener('keydown', handleFlipEsc);
+}
+
+function closeFlipModal() {
+  if (!flipOverlay || !flipOverlay.classList.contains('is-active')) return;
+
+  const activeCard = items[activeIndex]?.el;
+  if (activeCard) {
+    const cardRect = activeCard.getBoundingClientRect();
+    const overlayRect = flipOverlay.getBoundingClientRect();
+    const startX = cardRect.left + cardRect.width / 2 - overlayRect.left;
+    const startY = cardRect.top + cardRect.height / 2 - overlayRect.top;
+    const startScaleX = cardRect.width / flipContainer.offsetWidth;
+    const startScaleY = cardRect.height / flipContainer.offsetHeight;
+
+    flipContainer.style.transform = `translate(${startX - flipContainer.offsetWidth / 2}px, ${startY - flipContainer.offsetHeight / 2}px) scale(${startScaleX}, ${startScaleY})`;
+  }
+
+  flipOverlay.classList.remove('is-active');
+  document.removeEventListener('keydown', handleFlipEsc);
+
+  setTimeout(() => {
+    flipContainer.style.transform = '';
+  }, 600);
+}
+
+function handleFlipEsc(e) {
+  if (e.key === 'Escape') {
+    closeFlipModal();
   }
 }
 
@@ -887,6 +1008,7 @@ async function warmupCompositing() {
 async function init() {
   createProgressDots();
   createCards();
+  setupCardHoverEffects();
   updateVisualConstants();
   measure();
   updateCarouselTransforms();
